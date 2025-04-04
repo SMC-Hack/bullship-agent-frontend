@@ -1,3 +1,4 @@
+import authService from "@/services/auth.service";
 import useAuthStore from "@/store/auth-store";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -18,12 +19,15 @@ const useAuth = (options: {
 
   const session = appSession ? appSession[address || ""] : null;
 
-  const signIn = async (signature: string) => {
+  const signIn = async (signature: string, nonce: number) => {
     if (!address) return;
+    const response = await authService.signIn(signature, address, nonce);
+    if (!response) return;
+
     const updatedAppSession = {
       ...(appSession || {}),
       [address]: {
-        accessToken: signature,
+        accessToken: response.accessToken,
       },
     };
     setAppSession(updatedAppSession);
@@ -38,15 +42,15 @@ const useAuth = (options: {
   };
 
   useEffect(() => {
-    const session = appSession ? appSession[address || ""] : null;
-    if (requireAuth && !session) {
-      router.push(authUrl);
-    }
-  }, [requireAuth, appSession, router, authUrl, address]);
-
-  useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    const session = appSession ? appSession[address || ""] : null;
+    if (mounted && requireAuth && !session) {
+      router.push(authUrl);
+    }
+  }, [requireAuth, appSession, router, authUrl, address, mounted]);
 
   return { session, address, mounted, signIn, signOut };
 };

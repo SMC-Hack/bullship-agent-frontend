@@ -1,26 +1,31 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Key } from "lucide-react";
 import { useRouter } from "next/router";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import useAuth from "@/hooks/useAuth";
+import useAuthMessage from "@/hooks/useAuthMessage";
+import { useSignMessage } from "wagmi";
 
 const SignInScreen = () => {
   const { address, session, mounted, signIn } = useAuth();
   const router = useRouter();
 
-  const handleSignIn = async () => {
-    try {
-      if (!address) return;
-      const signature = "Text";
-      const response = await signIn(signature);
-      if (response) {
-        router.push("/");
-      }
-    } catch (e) {
-      console.error(e);
-    }
+  const { data: authMessageRes } = useAuthMessage(address);
+  const { signMessage } = useSignMessage({
+    mutation: {
+      onSuccess: async (signature: `0x${string}`) => {
+        if (!address || !authMessageRes) return;
+        const nonce = authMessageRes?.authMessage.nonce;
+        await signIn(signature, nonce);
+      },
+    },
+  });
+
+  const handleSignSignature = () => {
+    if (!address || !authMessageRes) return;
+    signMessage({ message: authMessageRes.authMessage.message });
   };
 
   useEffect(() => {
@@ -56,10 +61,7 @@ const SignInScreen = () => {
                 chainStatus="none"
               />
               {mounted && address && (
-                <Button
-                  // className="w-full py-6 text-lg"
-                  onClick={handleSignIn}
-                >
+                <Button onClick={handleSignSignature}>
                   <Key className="mr-2 h-5 w-5" />
                   Sign In
                 </Button>
