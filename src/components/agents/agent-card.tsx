@@ -1,31 +1,30 @@
-import type React from "react"
-import { useRouter } from "next/navigation"
-import Image from "next/image"
-import { ArrowUpRight, ArrowDownRight, Star } from "lucide-react"
-import { Area, AreaChart, ResponsiveContainer } from "recharts"
-import { cn } from "@/lib/utils"
-import { useState } from "react"
-import AgentCardSkeleton from "@/components/agents/agent-card-skeleton"
+import type React from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Area, AreaChart, ResponsiveContainer } from "recharts";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
+import AgentCardSkeleton from "@/components/agents/agent-card-skeleton";
 
 interface AgentCardProps {
   agent?: {
-    id: string
-    name: string
-    symbol: string
-    aum: number
-    pnl: number
-    image: string
+    id: string;
+    name: string;
+    symbol: string;
+    aum: number;
+    pnl: number;
+    image: string;
     performance?: Array<{
-      timestamp: string
-      value: number
-    }>
-  }
-  isLoading?: boolean
+      timestamp: string;
+      value: number;
+    }>;
+  };
+  isLoading?: boolean;
 }
 
 const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
-  const router = useRouter()
-  const [isWatchlisted, setIsWatchlisted] = useState(false)
+  const router = useRouter();
 
   // Default performance data if none provided
   const defaultData = [
@@ -35,30 +34,30 @@ const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
     { timestamp: "4", value: 140 },
     { timestamp: "5", value: 130 },
     { timestamp: "6", value: 160 },
-  ]
+  ];
 
-  const performanceData = agent?.performance || defaultData
+  const performanceData = agent?.performance || defaultData;
 
   const handleCardClick = () => {
-    router.push(`/agent/${agent?.id}`)
-  }
+    router.push(`/agent/${agent?.id}`);
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
-      handleCardClick()
+      handleCardClick();
     }
-  }
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
       maximumFractionDigits: 0,
-    }).format(value)
-  }
+    }).format(value);
+  };
 
   if (isLoading || !agent) {
-    return <AgentCardSkeleton />
+    return <AgentCardSkeleton />;
   }
 
   return (
@@ -72,7 +71,12 @@ const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
       {/* Left section: Avatar and Name */}
       <div className="flex items-center">
         <div className="relative h-12 w-12">
-          <Image src={agent.image || "/placeholder.svg"} alt={agent.name} fill className="rounded-full object-cover" />
+          <Image
+            src={agent.image || "/placeholder.svg"}
+            alt={agent.name}
+            fill
+            className="rounded-full object-cover"
+          />
         </div>
         <div>
           <h3 className="font-semibold text-gray-900">{agent.name}</h3>
@@ -100,7 +104,12 @@ const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
 
       {/* Right section: Compact Metrics */}
       <div className="flex flex-col items-end text-right">
-        <div className={cn("flex items-center text-sm font-medium", agent.pnl >= 0 ? "text-green-600" : "text-red-600")}>
+        <div
+          className={cn(
+            "flex items-center text-sm font-medium",
+            agent.pnl >= 0 ? "text-green-600" : "text-red-600"
+          )}
+        >
           {agent.pnl >= 0 ? (
             <ArrowUpRight size={14} className="mr-0.5" />
           ) : (
@@ -111,8 +120,7 @@ const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
         <p className="text-xs text-gray-500">{formatCurrency(agent.aum)}</p>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AgentCard
-
+export default AgentCard;
