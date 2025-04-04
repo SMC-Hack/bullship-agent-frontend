@@ -4,12 +4,26 @@ import Image from "next/image"
 import { ArrowUpRight, ArrowDownRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
-import AgentCardSmallSkeleton from "./agent-card-small-skeleton"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Agent } from "@/interfaces/agent.interface"
 
 interface AgentCardSmallProps {
   agent?: Agent
   isLoading?: boolean
+}
+
+const AgentCardSmallSkeleton = () => {
+  return (
+    <Card className="w-[120px] h-[120px] bg-white">
+      <CardContent className="p-3 h-full flex flex-col justify-between">
+        <Skeleton className="h-8 w-8 rounded-full" />
+        <div className="space-y-1">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-3 w-8" />
+        </div>
+      </CardContent>
+    </Card>
+  )
 }
 
 const AgentCardSmall = ({ agent, isLoading }: AgentCardSmallProps) => {

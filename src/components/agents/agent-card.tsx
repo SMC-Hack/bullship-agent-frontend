@@ -1,14 +1,14 @@
 import type React from "react"
-
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { ArrowUpRight, ArrowDownRight, Star } from "lucide-react"
 import { Area, AreaChart, ResponsiveContainer } from "recharts"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
+import AgentCardSkeleton from "@/components/agents/agent-card-skeleton"
 
 interface AgentCardProps {
-  agent: {
+  agent?: {
     id: string
     name: string
     symbol: string
@@ -20,9 +20,10 @@ interface AgentCardProps {
       value: number
     }>
   }
+  isLoading?: boolean
 }
 
-const AgentCard = ({ agent }: AgentCardProps) => {
+const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
   const router = useRouter()
   const [isWatchlisted, setIsWatchlisted] = useState(false)
 
@@ -36,15 +37,10 @@ const AgentCard = ({ agent }: AgentCardProps) => {
     { timestamp: "6", value: 160 },
   ]
 
-  const performanceData = agent.performance || defaultData
+  const performanceData = agent?.performance || defaultData
 
   const handleCardClick = () => {
-    router.push(`/agent/${agent.id}`)
-  }
-
-  const handleWatchlistToggle = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setIsWatchlisted(!isWatchlisted)
+    router.push(`/agent/${agent?.id}`)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -61,13 +57,17 @@ const AgentCard = ({ agent }: AgentCardProps) => {
     }).format(value)
   }
 
+  if (isLoading || !agent) {
+    return <AgentCardSkeleton />
+  }
+
   return (
     <div
       className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center hover:shadow-md transition-shadow duration-200 cursor-pointer"
       onClick={handleCardClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}
-      aria-label={`View details for ${agent.name}`}
+      aria-label={`View details for ${agent?.name}`}
     >
       {/* Left section: Avatar and Name */}
       <div className="flex items-center">
