@@ -1,11 +1,10 @@
-import ThemeSwitcher from "@/components/theme/theme-switcher"
-import { Button } from "@/components/ui/button"
+import RootLayout from "@/components/layouts/root-layout";
+import HomeScreen from "@/screens/home-screen";
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <div>
-      <Button>Click me</Button>
-      <ThemeSwitcher />
-    </div>
-  )
+    <RootLayout>
+      <HomeScreen />
+    </RootLayout>
+  );
 }
