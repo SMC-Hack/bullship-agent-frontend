@@ -12,6 +12,7 @@ export default function HomeScreen() {
     useLatestAgents(page);
   const { data: topAgents, isLoading: isTopAgentsLoading } = useTopAgents(page);
 
+  
   return (
     <div className="container px-4 py-6 max-w-md mx-auto">
       <Heading />
