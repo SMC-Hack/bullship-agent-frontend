@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { usePublicClient, useWalletClient } from 'wagmi';
 import { BigNumber, ethers } from 'ethers';
-import merchantContractService, { AgentInfo, SellShareRequest } from '@/services/merchant-contract.service';
+import merchantContractService, { AgentInfo, SellShareRequest, GasEstimation } from '@/services/merchant-contract.service';
 
 // Helper adapters for compatibility between wagmi v2 and ethers v5
 function walletClientToEthersSigner(walletClient: any): ethers.Signer | null {
@@ -402,6 +402,77 @@ export default function useMerchant() {
     return wagmiWalletClient?.account?.address;
   }, [wagmiWalletClient]);
   
+  // Gas estimation functions
+  const estimateCreateAgentGas = useCallback(
+    async (walletAddress: string, name: string, symbol: string): Promise<GasEstimation | null> => {
+      if (!signer) return null;
+      
+      try {
+        return await merchantContractService.estimateCreateAgentGas(signer, walletAddress, name, symbol);
+      } catch (error) {
+        console.error('Error estimating create agent gas:', error);
+        return null;
+      }
+    },
+    [signer]
+  );
+  
+  const estimatePurchaseStockGas = useCallback(
+    async (stockTokenAddress: string, tokenAmount: number): Promise<GasEstimation | null> => {
+      if (!signer) return null;
+      
+      try {
+        return await merchantContractService.estimatePurchaseStockGas(signer, stockTokenAddress, tokenAmount);
+      } catch (error) {
+        console.error('Error estimating purchase stock gas:', error);
+        return null;
+      }
+    },
+    [signer]
+  );
+  
+  const estimateCommitSellStockGas = useCallback(
+    async (stockTokenAddress: string, tokenAmount: number): Promise<GasEstimation | null> => {
+      if (!signer) return null;
+      
+      try {
+        return await merchantContractService.estimateCommitSellStockGas(signer, stockTokenAddress, tokenAmount);
+      } catch (error) {
+        console.error('Error estimating commit sell stock gas:', error);
+        return null;
+      }
+    },
+    [signer]
+  );
+  
+  const estimateFulfillSellStockGas = useCallback(
+    async (): Promise<GasEstimation | null> => {
+      if (!signer) return null;
+      
+      try {
+        return await merchantContractService.estimateFulfillSellStockGas(signer);
+      } catch (error) {
+        console.error('Error estimating fulfill sell stock gas:', error);
+        return null;
+      }
+    },
+    [signer]
+  );
+  
+  const estimateUpdateUsdcTokenAddressGas = useCallback(
+    async (newUsdcTokenAddress: string): Promise<GasEstimation | null> => {
+      if (!signer) return null;
+      
+      try {
+        return await merchantContractService.estimateUpdateUsdcTokenAddressGas(signer, newUsdcTokenAddress);
+      } catch (error) {
+        console.error('Error estimating update USDC token address gas:', error);
+        return null;
+      }
+    },
+    [signer]
+  );
+  
   return {
     // Contract state
     owner,
@@ -430,5 +501,12 @@ export default function useMerchant() {
     getAgentWalletAddress,
     getSellShareRequests,
     getAgentsByCreator,
+    
+    // Gas estimation functions
+    estimateCreateAgentGas,
+    estimatePurchaseStockGas,
+    estimateCommitSellStockGas,
+    estimateFulfillSellStockGas,
+    estimateUpdateUsdcTokenAddressGas,
   };
 }

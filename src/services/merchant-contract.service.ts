@@ -2,7 +2,7 @@ import { config } from "@/config";
 import { AgentMerchant, AgentMerchant__factory } from "@/typechain-types";
 import { BigNumber, ethers } from "ethers";
 
-const { MERCHANT_CONTRACT_ADDRESS, BASE_SEPOLIA_USDC_ADDRESS } = config;
+const { MERCHANT_CONTRACT_ADDRESS } = config;
 
 export function getAgentMerchantContract(signerOrProvider: ethers.Signer | ethers.providers.Provider): AgentMerchant {
   return AgentMerchant__factory.connect(MERCHANT_CONTRACT_ADDRESS, signerOrProvider);
@@ -26,6 +26,16 @@ export interface SellShareRequest {
   tokenAmount: BigNumber;
 }
 
+/**
+ * Gas estimation result
+ */
+export interface GasEstimation {
+  gasLimit: BigNumber;
+  gasPrice: BigNumber;
+  estimatedCost: BigNumber; // in wei
+  estimatedCostInEth: string; // formatted in ETH for display
+}
+
 
 class MerchantContractService {
   /**
@@ -37,6 +47,8 @@ class MerchantContractService {
     name: string,
     symbol: string
   ): Promise<ethers.ContractTransaction> {
+
+    
     const contract = getAgentMerchantContract(signer);
     return contract.createAgent(walletAddress, name, symbol);
   }
@@ -162,6 +174,112 @@ class MerchantContractService {
     }
     
     return agentAddresses;
+  }
+
+  /**
+   * Estimate gas for creating a new agent
+   */
+  async estimateCreateAgentGas(
+    signer: ethers.Signer,
+    walletAddress: string,
+    name: string,
+    symbol: string
+  ): Promise<GasEstimation> {
+    const contract = getAgentMerchantContract(signer);
+    
+    const gasLimit = await contract.estimateGas.createAgent(walletAddress, name, symbol);
+    const gasPrice = await signer.getGasPrice();
+    const estimatedCost = gasLimit.mul(gasPrice);
+    
+    return {
+      gasLimit,
+      gasPrice,
+      estimatedCost,
+      estimatedCostInEth: ethers.utils.formatEther(estimatedCost)
+    };
+  }
+
+  /**
+   * Estimate gas for purchasing stock
+   */
+  async estimatePurchaseStockGas(
+    signer: ethers.Signer,
+    stockTokenAddress: string,
+    tokenAmount: number
+  ): Promise<GasEstimation> {
+    const contract = getAgentMerchantContract(signer);
+    
+    const gasLimit = await contract.estimateGas.purchaseStock(stockTokenAddress, tokenAmount);
+    const gasPrice = await signer.getGasPrice();
+    const estimatedCost = gasLimit.mul(gasPrice);
+    
+    return {
+      gasLimit,
+      gasPrice,
+      estimatedCost,
+      estimatedCostInEth: ethers.utils.formatEther(estimatedCost)
+    };
+  }
+
+  /**
+   * Estimate gas for committing to sell stock
+   */
+  async estimateCommitSellStockGas(
+    signer: ethers.Signer,
+    stockTokenAddress: string,
+    tokenAmount: number
+  ): Promise<GasEstimation> {
+    const contract = getAgentMerchantContract(signer);
+    
+    const gasLimit = await contract.estimateGas.commitSellStock(stockTokenAddress, tokenAmount);
+    const gasPrice = await signer.getGasPrice();
+    const estimatedCost = gasLimit.mul(gasPrice);
+    
+    return {
+      gasLimit,
+      gasPrice,
+      estimatedCost,
+      estimatedCostInEth: ethers.utils.formatEther(estimatedCost)
+    };
+  }
+
+  /**
+   * Estimate gas for fulfilling sell stock requests
+   */
+  async estimateFulfillSellStockGas(signer: ethers.Signer): Promise<GasEstimation> {
+    const contract = getAgentMerchantContract(signer);
+    
+    const gasLimit = await contract.estimateGas.fullfillSellStock();
+    const gasPrice = await signer.getGasPrice();
+    const estimatedCost = gasLimit.mul(gasPrice);
+    
+    return {
+      gasLimit,
+      gasPrice,
+      estimatedCost,
+      estimatedCostInEth: ethers.utils.formatEther(estimatedCost)
+    };
+  }
+
+  /**
+   * Estimate gas for updating USDC token address
+   */
+  async estimateUpdateUsdcTokenAddressGas(
+    signer: ethers.Signer,
+    newUsdcTokenAddress: string
+  ): Promise<GasEstimation> {
+    const contract = getAgentMerchantContract(signer);
+    
+    const gasLimit = await contract.estimateGas.updateUsdcTokenAddress(newUsdcTokenAddress);
+    const gasPrice = await signer.getGasPrice();
+    const estimatedCost = gasLimit.mul(gasPrice);
+    
+    return {
+      gasLimit,
+      gasPrice,
+      estimatedCost,
+      estimatedCostInEth: ethers.utils.formatEther(estimatedCost)
+    };
   }
 }
 
