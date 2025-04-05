@@ -37,6 +37,7 @@ export interface AgentMerchantInterface extends utils.Interface {
     "getSellShareRequestsLength(address)": FunctionFragment;
     "owner()": FunctionFragment;
     "purchaseStock(address,uint256)": FunctionFragment;
+    "purchaseStockByUsdc(address,uint256)": FunctionFragment;
     "sellShareRequests(address,uint256)": FunctionFragment;
     "stockTokenToWalletAddressMapper(address)": FunctionFragment;
     "updateUsdcTokenAddress(address)": FunctionFragment;
@@ -53,6 +54,7 @@ export interface AgentMerchantInterface extends utils.Interface {
       | "getSellShareRequestsLength"
       | "owner"
       | "purchaseStock"
+      | "purchaseStockByUsdc"
       | "sellShareRequests"
       | "stockTokenToWalletAddressMapper"
       | "updateUsdcTokenAddress"
@@ -90,6 +92,10 @@ export interface AgentMerchantInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "purchaseStock",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "purchaseStockByUsdc",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
@@ -133,6 +139,10 @@ export interface AgentMerchantInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "purchaseStock",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "purchaseStockByUsdc",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -323,6 +333,12 @@ export interface AgentMerchant extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    purchaseStockByUsdc(
+      stockTokenAddress: PromiseOrValue<string>,
+      usdcAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     sellShareRequests(
       arg0: PromiseOrValue<string>,
       arg1: PromiseOrValue<BigNumberish>,
@@ -395,6 +411,12 @@ export interface AgentMerchant extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  purchaseStockByUsdc(
+    stockTokenAddress: PromiseOrValue<string>,
+    usdcAmount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   sellShareRequests(
     arg0: PromiseOrValue<string>,
     arg1: PromiseOrValue<BigNumberish>,
@@ -459,6 +481,12 @@ export interface AgentMerchant extends BaseContract {
     purchaseStock(
       stockTokenAddress: PromiseOrValue<string>,
       tokenAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    purchaseStockByUsdc(
+      stockTokenAddress: PromiseOrValue<string>,
+      usdcAmount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -608,6 +636,12 @@ export interface AgentMerchant extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    purchaseStockByUsdc(
+      stockTokenAddress: PromiseOrValue<string>,
+      usdcAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     sellShareRequests(
       arg0: PromiseOrValue<string>,
       arg1: PromiseOrValue<BigNumberish>,
@@ -666,6 +700,12 @@ export interface AgentMerchant extends BaseContract {
     purchaseStock(
       stockTokenAddress: PromiseOrValue<string>,
       tokenAmount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    purchaseStockByUsdc(
+      stockTokenAddress: PromiseOrValue<string>,
+      usdcAmount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
