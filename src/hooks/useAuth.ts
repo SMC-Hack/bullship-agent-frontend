@@ -3,6 +3,7 @@ import useAuthStore from "@/store/auth-store";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
+import { jwtDecode } from "jwt-decode";
 
 const useAuth = (options: {
   requireAuth?: boolean;
@@ -51,6 +52,16 @@ const useAuth = (options: {
       router.push(authUrl);
     }
   }, [requireAuth, appSession, router, authUrl, address, mounted]);
+
+  useEffect(() => {
+    const session = appSession ? appSession[address || ""] : null;
+    if (mounted && session) {
+      const decodedToken = jwtDecode(session.accessToken);
+      if (decodedToken.exp && decodedToken.exp < Date.now() / 1000) {
+        signOut();
+      }
+    }
+  }, [mounted, appSession, address, signOut]);
 
   return { session, address, mounted, signIn, signOut };
 };
