@@ -1,6 +1,12 @@
-import axios from 'axios';
 import { sleep } from "@/utils/time";
-import { AgentResponse, CreateAgentDto, CreateAgentTokenDto, GetAgentsQuery } from '@/interfaces/agent.interface';
+import {
+  AgentResponse,
+  CreateAgentDto,
+  CreateAgentTokenDto,
+  GetAgentsQuery,
+} from "@/interfaces/agent.interface";
+import api from "@/lib/axios";
+import axios from "axios";
 
 const PAGE_SIZE = 2;
 
@@ -84,56 +90,59 @@ const fetchLatestAgents = async (page: number) => {
   return LATEST_AGENTS.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 };
 
-const fetchAgents = async (query: GetAgentsQuery = {}): Promise<AgentResponse[]> => {
+const fetchAgents = async (
+  query: GetAgentsQuery = {}
+): Promise<AgentResponse[]> => {
   try {
     const params = new URLSearchParams();
-    if (query.page) params.append('page', query.page.toString());
-    if (query.limit) params.append('limit', query.limit.toString());
-    if (query.search) params.append('search', query.search);
-    if (query.sortBy) params.append('sortBy', query.sortBy);
-    if (query.sortDirection) params.append('sortDirection', query.sortDirection);
+    if (query.page) params.append("page", query.page.toString());
+    if (query.limit) params.append("limit", query.limit.toString());
+    if (query.search) params.append("search", query.search);
+    if (query.sortBy) params.append("sortBy", query.sortBy);
+    if (query.sortDirection)
+      params.append("sortDirection", query.sortDirection);
 
-    const { data } = await axios.get<AgentResponse[]>(
-      `${process.env.NEXT_PUBLIC_API_URL}/agent?${params.toString()}`
+    const { data } = await api.get<AgentResponse[]>(
+      `/agent?${params.toString()}`
     );
     return data;
   } catch (error) {
-    throw new Error('Failed to fetch agents');
+    throw new Error("Failed to fetch agents");
   }
 };
 
 const fetchAgent = async (agentId: string): Promise<AgentResponse> => {
   try {
-    const { data } = await axios.get<AgentResponse>(
-      `${process.env.NEXT_PUBLIC_API_URL}/agent/${agentId}`
-    );
+    const { data } = await api.get<AgentResponse>(`/agent/${agentId}`);
     return data;
   } catch (error) {
-    throw new Error('Failed to fetch agent');
+    throw new Error("Failed to fetch agent");
   }
 };
 
-const createAgent = async (createAgentDto: CreateAgentDto): Promise<AgentResponse> => {
+const createAgent = async (
+  createAgentDto: CreateAgentDto
+): Promise<AgentResponse> => {
   try {
-    const { data } = await axios.post<AgentResponse>(
-      `${process.env.NEXT_PUBLIC_API_URL}/agent`,
-      createAgentDto
-    );
+    const { data } = await api.post<AgentResponse>("/agent", createAgentDto);
     return data;
   } catch (error) {
-    throw new Error('Failed to create agent');
+    throw new Error("Failed to create agent");
   }
 };
 
-const createAgentToken = async (agentId: string, createAgentTokenDto: CreateAgentTokenDto): Promise<AgentResponse> => {
+const createAgentToken = async (
+  agentId: string,
+  createAgentTokenDto: CreateAgentTokenDto
+): Promise<AgentResponse> => {
   try {
-    const { data } = await axios.post<AgentResponse>(
-      `${process.env.NEXT_PUBLIC_API_URL}/agent/${agentId}/token`,
+    const { data } = await api.post<AgentResponse>(
+      `/agent/${agentId}/token`,
       createAgentTokenDto
     );
     return data;
   } catch (error) {
-    throw new Error('Failed to create agent token');
+    throw new Error("Failed to create agent token");
   }
 };
 

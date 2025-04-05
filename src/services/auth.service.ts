@@ -1,20 +1,28 @@
-import config from "@/config";
-import { AuthMessageResponse, SignInResponse } from "@/interfaces/auth.interface";
-import axios from "axios";
+import {
+  AuthMessageResponse,
+  SignInResponse,
+} from "@/interfaces/auth.interface";
+import api from "@/lib/axios";
 
-const signIn = async (signature: string, walletAddress: string, nonce: number) => {
-  const url = `${config.API_URL}/auth/login`;
-  const response = await axios.post<SignInResponse>(url, {
+const signIn = async (
+  signature: string,
+  walletAddress: string,
+  nonce: number
+) => {
+  const response = await api.post<SignInResponse>("/auth/login", {
     signature,
     walletAddress,
-    nonce: nonce.toString()
+    nonce: nonce.toString(),
   });
   return response.data;
 };
 
-const getAuthMessage = async (walletAddress: string): Promise<AuthMessageResponse> => {
-  const url = `${config.API_URL}/auth/${walletAddress}/generate`;
-  const response = await axios.get<AuthMessageResponse>(url);
+const getAuthMessage = async (
+  walletAddress: string
+): Promise<AuthMessageResponse> => {
+  const response = await api.get<AuthMessageResponse>(
+    `/auth/${walletAddress}/generate`
+  );
   return response.data;
 };
 
