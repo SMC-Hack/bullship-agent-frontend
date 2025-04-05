@@ -61,10 +61,7 @@ export default function useMerchant() {
   // State for contract owner
   const [owner, setOwner] = useState<string | null>(null);
   const [isOwnerLoading, setIsOwnerLoading] = useState(false);
-  
-  // State for USDC token address
-  const [usdcTokenAddress, setUsdcTokenAddress] = useState<string | null>(null);
-  const [isUsdcTokenAddressLoading, setIsUsdcTokenAddressLoading] = useState(false);
+
   
   // Initial loading of contract data
   useEffect(() => {
@@ -73,18 +70,15 @@ export default function useMerchant() {
     const loadContractData = async () => {
       try {
         setIsOwnerLoading(true);
-        setIsUsdcTokenAddressLoading(true);
         
         const contractOwner = await merchantContractService.getOwner(provider);
         const tokenAddress = await merchantContractService.getUsdcTokenAddress(provider);
         
         setOwner(contractOwner);
-        setUsdcTokenAddress(tokenAddress);
       } catch (error) {
         console.error('Error loading contract data:', error);
       } finally {
         setIsOwnerLoading(false);
-        setIsUsdcTokenAddressLoading(false);
       }
     };
     
@@ -331,9 +325,7 @@ export default function useMerchant() {
     try {
       const tx = await merchantContractService.updateUsdcTokenAddress(signer, newUsdcTokenAddress);
       const receipt = await tx.wait();
-      
-      // Update the USDC token address in the hook state
-      setUsdcTokenAddress(newUsdcTokenAddress);
+
       
       setUpdateUsdcTokenAddressState({
         ...updateUsdcTokenAddressState,
@@ -414,8 +406,6 @@ export default function useMerchant() {
     // Contract state
     owner,
     isOwnerLoading,
-    usdcTokenAddress,
-    isUsdcTokenAddressLoading,
     isOwner,
     getConnectedAddress,
     
