@@ -138,7 +138,7 @@ const SellModal = ({ agent, stockTokenBalance, onClose, onSuccess }: SellModalPr
           </Button>
           <Button
             onClick={handleSell}
-            className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600"
+            className="w-full sm:w-auto bg-gradient-to-r from-pink-500  to-red-500 hover:from-pink-600 hover:to-red-600"
             disabled={isProcessing || Number.parseFloat(amount) <= 0 || Number.parseFloat(amount) > agentBalance}
           >
             {isProcessing ? "Processing..." : "Confirm Sale"}
