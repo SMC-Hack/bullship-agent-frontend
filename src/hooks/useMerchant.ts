@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { usePublicClient, useWalletClient } from 'wagmi';
 import { BigNumber, ethers } from 'ethers';
+import { useQuery } from '@tanstack/react-query';
 import merchantContractService, { AgentInfo, SellShareRequest, GasEstimation } from '@/services/merchant-contract.service';
 import { getAgentMerchantContract } from "@/services/merchant-contract.service";
 import { PublicClient, WalletClient } from 'viem';
@@ -61,32 +62,33 @@ export default function useMerchant() {
     }
   }, [wagmiWalletClient]);
   
-  // State for contract owner
-  const [owner, setOwner] = useState<string | null>(null);
-  const [isOwnerLoading, setIsOwnerLoading] = useState(false);
+  // State for contract owner - using React Query
+  const { 
+    data: owner, 
+    isLoading: isOwnerLoading, 
+    refetch: refetchOwner 
+  } = useQuery({
+    queryKey: ['contractOwner', provider],
+    queryFn: async () => {
+      if (!provider) return null;
+      return await merchantContractService.getOwner(provider);
+    },
+    enabled: !!provider
+  });
 
-  
-  // Initial loading of contract data
-  useEffect(() => {
-    if (!provider) return;
-    
-    const loadContractData = async () => {
-      try {
-        setIsOwnerLoading(true);
-        
-        const contractOwner = await merchantContractService.getOwner(provider);
-        const tokenAddress = await merchantContractService.getUsdcTokenAddress(provider);
-        
-        setOwner(contractOwner);
-      } catch (error) {
-        console.error('Error loading contract data:', error);
-      } finally {
-        setIsOwnerLoading(false);
-      }
-    };
-    
-    loadContractData();
-  }, [provider]);
+  // Contract address query - useful for many operations
+  const { 
+    data: usdcTokenAddress,
+    isLoading: isUsdcTokenAddressLoading, 
+    refetch: refetchUsdcTokenAddress 
+  } = useQuery({
+    queryKey: ['usdcTokenAddress', provider],
+    queryFn: async () => {
+      if (!provider) return null;
+      return await merchantContractService.getUsdcTokenAddress(provider);
+    },
+    enabled: !!provider
+  });
   
   // Create Agent
   const [createAgentState, setCreateAgentState] = useState<CreateAgentResponse>({
@@ -443,10 +445,73 @@ export default function useMerchant() {
     }
   }, [signer, updateUsdcTokenAddressState]);
   
-  // Read functions
+  // Read functions using React Query
+  const useAgentInfo = (walletAddress: string) => {
+    return useQuery({
+      queryKey: ['agentInfo', provider, walletAddress],
+      queryFn: async () => {
+        if (!provider || !walletAddress) return null;
+        try {
+          return await merchantContractService.getAgentInfo(provider, walletAddress);
+        } catch (error) {
+          console.error('Error getting agent info:', error);
+          return null;
+        }
+      },
+      enabled: !!provider && !!walletAddress
+    });
+  };
+  
+  const useAgentWalletAddress = (stockTokenAddress: string) => {
+    return useQuery({
+      queryKey: ['agentWalletAddress', provider, stockTokenAddress],
+      queryFn: async () => {
+        if (!provider || !stockTokenAddress) return null;
+        try {
+          return await merchantContractService.getAgentWalletAddress(provider, stockTokenAddress);
+        } catch (error) {
+          console.error('Error getting agent wallet address:', error);
+          return null;
+        }
+      },
+      enabled: !!provider && !!stockTokenAddress
+    });
+  };
+  
+  const useSellShareRequests = (stockTokenAddress: string) => {
+    return useQuery({
+      queryKey: ['sellShareRequests', provider, stockTokenAddress],
+      queryFn: async () => {
+        if (!provider || !stockTokenAddress) return [];
+        try {
+          return await merchantContractService.getSellShareRequests(provider, stockTokenAddress);
+        } catch (error) {
+          console.error('Error getting sell share requests:', error);
+          return [];
+        }
+      },
+      enabled: !!provider && !!stockTokenAddress
+    });
+  };
+  
+  const useAgentsByCreator = (creatorAddress: string) => {
+    return useQuery({
+      queryKey: ['agentsByCreator', provider, creatorAddress],
+      queryFn: async () => {
+        if (!provider || !creatorAddress) return [];
+        try {
+          return await merchantContractService.getAgentsByCreator(provider, creatorAddress);
+        } catch (error) {
+          console.error('Error getting agents by creator:', error);
+          return [];
+        }
+      },
+      enabled: !!provider && !!creatorAddress
+    });
+  };
+  
+  // Keep the original functions for components that don't need React Query's features
   const getAgentInfo = useCallback(async (walletAddress: string): Promise<AgentInfo | null> => {
-    console.log('provider', provider)
-    console.log('walletAddress', walletAddress)
     if (!provider) return null;
     
     try {
@@ -456,45 +521,6 @@ export default function useMerchant() {
       return null;
     }
   }, [provider]);
-  
-  const getAgentWalletAddress = useCallback(async (stockTokenAddress: string): Promise<string | null> => {
-    if (!provider) return null;
-    
-    try {
-      return await merchantContractService.getAgentWalletAddress(provider, stockTokenAddress);
-    } catch (error) {
-      console.error('Error getting agent wallet address:', error);
-      return null;
-    }
-  }, [provider]);
-  
-  const getSellShareRequests = useCallback(async (stockTokenAddress: string): Promise<SellShareRequest[]> => {
-    if (!provider) return [];
-    
-    try {
-      return await merchantContractService.getSellShareRequests(provider, stockTokenAddress);
-    } catch (error) {
-      console.error('Error getting sell share requests:', error);
-      return [];
-    }
-  }, [provider]);
-  
-  const getAgentsByCreator = useCallback(async (creatorAddress: string): Promise<string[]> => {
-    if (!provider) return [];
-    
-    try {
-      return await merchantContractService.getAgentsByCreator(provider, creatorAddress);
-    } catch (error) {
-      console.error('Error getting agents by creator:', error);
-      return [];
-    }
-  }, [provider]);
-  
-  // Check if user is owner
-  const isOwner = useCallback((address: string | undefined): boolean => {
-    if (!address || !owner) return false;
-    return address.toLowerCase() === owner.toLowerCase();
-  }, [owner]);
   
   // Return connected wallet address
   const getConnectedAddress = useCallback((): string | undefined => {
@@ -586,12 +612,55 @@ export default function useMerchant() {
     [signer]
   );
   
+  // Check if user is owner
+  const isOwner = useCallback((address: string | undefined): boolean => {
+    if (!address || !owner) return false;
+    return address.toLowerCase() === owner.toLowerCase();
+  }, [owner]);
+  
+  // Legacy read functions for backward compatibility
+  const getAgentWalletAddress = useCallback(async (stockTokenAddress: string): Promise<string | null> => {
+    if (!provider) return null;
+    
+    try {
+      return await merchantContractService.getAgentWalletAddress(provider, stockTokenAddress);
+    } catch (error) {
+      console.error('Error getting agent wallet address:', error);
+      return null;
+    }
+  }, [provider]);
+  
+  const getSellShareRequests = useCallback(async (stockTokenAddress: string): Promise<SellShareRequest[]> => {
+    if (!provider) return [];
+    
+    try {
+      return await merchantContractService.getSellShareRequests(provider, stockTokenAddress);
+    } catch (error) {
+      console.error('Error getting sell share requests:', error);
+      return [];
+    }
+  }, [provider]);
+  
+  const getAgentsByCreator = useCallback(async (creatorAddress: string): Promise<string[]> => {
+    if (!provider) return [];
+    
+    try {
+      return await merchantContractService.getAgentsByCreator(provider, creatorAddress);
+    } catch (error) {
+      console.error('Error getting agents by creator:', error);
+      return [];
+    }
+  }, [provider]);
+  
+  // Return everything
   return {
     // Contract state
     owner,
     isOwnerLoading,
     isOwner,
     getConnectedAddress,
+    usdcTokenAddress,
+    isUsdcTokenAddressLoading,
     
     // Write functions with states
     createAgent,
@@ -612,11 +681,21 @@ export default function useMerchant() {
     updateUsdcTokenAddress,
     updateUsdcTokenAddressState,
     
-    // Read functions
+    // Read functions - React Query hooks
+    useAgentInfo,
+    useAgentWalletAddress,
+    useSellShareRequests,
+    useAgentsByCreator,
+    
+    // Legacy read functions (for backward compatibility)
     getAgentInfo,
     getAgentWalletAddress,
     getSellShareRequests,
     getAgentsByCreator,
+    
+    // Refetch functions
+    refetchOwner,
+    refetchUsdcTokenAddress,
     
     // Gas estimation functions
     estimateCreateAgentGas,

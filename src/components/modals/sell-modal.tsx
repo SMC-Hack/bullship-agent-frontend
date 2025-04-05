@@ -6,19 +6,25 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { AgentResponse } from "@/types/agent"
+import { Agent } from "@/interfaces/agent.interface"
+import useMerchant from "@/hooks/useMerchant"
+
 
 interface SellModalProps {
-  agent: Pick<AgentResponse, "id" | "name" | "symbol" | "imageUrl" | "stockTokenAddress">;
-  onClose: () => void;
+  agent: Agent
+  stockTokenBalance: number
+  onClose: () => void
+  onSuccess?: () => void
 }
 
-const SellModal = ({ agent, onClose }: SellModalProps) => {
+const SellModal = ({ agent, stockTokenBalance, onClose, onSuccess }: SellModalProps) => {
   const [amount, setAmount] = useState("50")
   const [isProcessing, setIsProcessing] = useState(false)
 
+  const { commitSellStock, commitSellStockState } = useMerchant()
+
   // Mock data
-  const agentBalance = 100
+  const agentBalance = Number.parseInt(stockTokenBalance.toString());
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9.]/g, "")
@@ -33,11 +39,20 @@ const SellModal = ({ agent, onClose }: SellModalProps) => {
     setIsProcessing(true)
 
     // Simulate transaction processing
-    setTimeout(() => {
-      setIsProcessing(false)
+
+    try {
+      await commitSellStock(agent.stockAddress, Number.parseFloat(amount))
+
+      if (onSuccess) {
+        onSuccess()
+      }
+
       onClose()
-      // Show success notification here
-    }, 2000)
+    } catch (error) {
+      console.error("Sell failed:", error)
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   return (
@@ -58,14 +73,14 @@ const SellModal = ({ agent, onClose }: SellModalProps) => {
           </div>
           <div>
             <h3 className="font-semibold">{agent.name}</h3>
-            <p className="text-sm text-gray-500">${agent.symbol}</p>
+            <p className="text-sm text-gray-500">${agent.stockSymbol}</p>
           </div>
         </div>
 
         <div className="space-y-6">
           <div>
             <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
-              Amount (${agent.symbol})
+              Amount (${agent.stockSymbol})
             </label>
             <div className="relative">
               <Input id="amount" type="text" value={amount} onChange={handleAmountChange} className="pl-10 pr-4" />
@@ -75,7 +90,7 @@ const SellModal = ({ agent, onClose }: SellModalProps) => {
             </div>
             <div className="flex justify-between mt-1">
               <span className="text-xs text-gray-500">
-                Available: {agentBalance} ${agent.symbol}
+                Available: {agentBalance} ${agent.stockSymbol}
               </span>
               <button className="text-xs text-blue-600 font-medium" onClick={() => setAmount(agentBalance.toString())}>
                 MAX
@@ -102,7 +117,7 @@ const SellModal = ({ agent, onClose }: SellModalProps) => {
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="flex justify-between mb-2">
               <span className="text-gray-600">Amount</span>
-              <span className="font-medium">${amount} ${agent.symbol}</span>
+              <span className="font-medium">${amount} ${agent.stockSymbol}</span>
             </div>
             <div className="flex justify-between mb-2">
               <span className="text-gray-600">Fee (1%)</span>

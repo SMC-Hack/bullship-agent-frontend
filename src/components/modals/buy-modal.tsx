@@ -8,17 +8,20 @@ import { Slider } from "@/components/ui/slider"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import useMerchant from "@/hooks/useMerchant"
 import { ethers } from "ethers"
-import { AgentResponse } from "@/types/agent"
+import { Agent } from "@/interfaces/agent.interface"
 
 interface BuyModalProps {
-  agent: Pick<AgentResponse, "id" | "name" | "symbol" | "imageUrl" | "stockTokenAddress">;
-  onClose: () => void;
+  agent: Agent
+  usdcBalance: number
+  onClose: () => void
+  onSuccess?: () => void
 }
 
-const BuyModal = ({ agent, onClose }: BuyModalProps) => {
+const BuyModal = ({ agent, usdcBalance, onClose, onSuccess }: BuyModalProps) => {
   const [amount, setAmount] = useState("100")
   const [isProcessing, setIsProcessing] = useState(false)
-  const { purchaseStockByUsdc } = useMerchant()
+  const { purchaseStockByUsdc, purchaseStockByUsdcState } = useMerchant()
+  
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9.]/g, "")
     setAmount(value)
@@ -31,21 +34,28 @@ const BuyModal = ({ agent, onClose }: BuyModalProps) => {
   const handleBuy = async () => {
     setIsProcessing(true)
 
-    await purchaseStockByUsdc(agent.stockTokenAddress || "", ethers.utils.parseUnits(amount, 6))
-
-    // Simulate transaction processing
-    setTimeout(() => {
-      setIsProcessing(false)
+    try {
+      await purchaseStockByUsdc(agent.stockAddress, ethers.utils.parseUnits(amount, 6))
+      
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess()
+      }
+      
+      // Close the modal after successful purchase
       onClose()
-      // Show success notification here
-    }, 2000)
+    } catch (error) {
+      console.error("Purchase failed:", error)
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-center">Buy ${agent.symbol}</DialogTitle>
+          <DialogTitle className="text-center">Buy ${agent.stockSymbol}</DialogTitle>
         </DialogHeader>
 
         <div className="flex items-center justify-center mb-6">
@@ -59,7 +69,7 @@ const BuyModal = ({ agent, onClose }: BuyModalProps) => {
           </div>
           <div>
             <h3 className="font-semibold">{agent.name}</h3>
-            <p className="text-sm text-gray-500">${agent.symbol}</p>
+            <p className="text-sm text-gray-500">${agent.stockSymbol}</p>
           </div>
         </div>
 
@@ -79,16 +89,15 @@ const BuyModal = ({ agent, onClose }: BuyModalProps) => {
           <div>
             <Slider
               defaultValue={[100]}
-              max={1000}
+              max={usdcBalance}
               step={10}
               value={[Number.parseFloat(amount) || 0]}
               onValueChange={handleSliderChange}
               className="my-6"
             />
             <div className="flex justify-between text-xs text-gray-500">
-              <span>$10</span>
-              <span>$500</span>
-              <span>$1000</span>
+              <span>$0</span>
+              <span>$MAX</span>
             </div>
           </div>
 
@@ -104,7 +113,7 @@ const BuyModal = ({ agent, onClose }: BuyModalProps) => {
             <div className="border-t pt-2 mt-2 flex justify-between">
               <span className="text-gray-700 font-medium">You will receive</span>
               <span className="font-semibold">
-                ${amount} ${agent.symbol}
+                ${amount} ${agent.stockSymbol}
               </span>
             </div>
           </div>
