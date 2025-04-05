@@ -17,13 +17,16 @@ interface BuyModalProps {
     image: string
     stockTokenAddress: string
   }
+  usdcBalance: number
   onClose: () => void
+  onSuccess?: () => void
 }
 
-const BuyModal = ({ agent, onClose }: BuyModalProps) => {
+const BuyModal = ({ agent, usdcBalance, onClose, onSuccess }: BuyModalProps) => {
   const [amount, setAmount] = useState("100")
   const [isProcessing, setIsProcessing] = useState(false)
-  const { purchaseStockByUsdc } = useMerchant()
+  const { purchaseStockByUsdc, purchaseStockByUsdcState } = useMerchant()
+  
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9.]/g, "")
     setAmount(value)
@@ -36,14 +39,21 @@ const BuyModal = ({ agent, onClose }: BuyModalProps) => {
   const handleBuy = async () => {
     setIsProcessing(true)
 
-    await purchaseStockByUsdc(agent.stockTokenAddress, ethers.utils.parseUnits(amount, 6))
-
-    // Simulate transaction processing
-    setTimeout(() => {
-      setIsProcessing(false)
+    try {
+      await purchaseStockByUsdc(agent.stockTokenAddress, ethers.utils.parseUnits(amount, 6))
+      
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess()
+      }
+      
+      // Close the modal after successful purchase
       onClose()
-      // Show success notification here
-    }, 2000)
+    } catch (error) {
+      console.error("Purchase failed:", error)
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   return (
@@ -84,16 +94,15 @@ const BuyModal = ({ agent, onClose }: BuyModalProps) => {
           <div>
             <Slider
               defaultValue={[100]}
-              max={1000}
+              max={usdcBalance}
               step={10}
               value={[Number.parseFloat(amount) || 0]}
               onValueChange={handleSliderChange}
               className="my-6"
             />
             <div className="flex justify-between text-xs text-gray-500">
-              <span>$10</span>
-              <span>$500</span>
-              <span>$1000</span>
+              <span>$0</span>
+              <span>$MAX</span>
             </div>
           </div>
 
