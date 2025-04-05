@@ -35,7 +35,7 @@ export default function CreateScreen() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const { createAgent, createAgentState, getAgentInfo } = useMerchant();
+  const { createAgent, getAgentInfo } = useMerchant();
 
   const accessToken = session?.accessToken || "";
   const availableTokens = useMemo(() => {
