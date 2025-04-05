@@ -1,10 +1,11 @@
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { AgentIdentityForm } from "@/components/create/AgentIdentityForm"
 import { TradingStrategyForm } from "@/components/create/TradingStrategyForm"
 import agentService from "@/services/agent.service"
-
+import useMerchant from "@/hooks/useMerchant"
+import { ethers } from "ethers"
 export default function CreateScreen() {
   const router = useRouter()
   const [step, setStep] = useState(1)
@@ -31,6 +32,9 @@ export default function CreateScreen() {
     { id: "link", name: "Chainlink (LINK)" },
     { id: "uni", name: "Uniswap (UNI)" },
   ]
+
+  const { createAgent, createAgentState, getAgentInfo } = useMerchant();
+
 
   const handleGoBack = () => {
     if (step > 1) {
@@ -79,11 +83,26 @@ export default function CreateScreen() {
     //   selectedTokens: selectedTokens.join(","),
     // })
 
+    // for testing: use random agent wallet address
+    const agentWalletAddress = ethers.Wallet.createRandom().address;
+    console.log("Agent wallet address: ", agentWalletAddress)
+
     // Step 2: Register agent in smart contract
+    await createAgent(agentWalletAddress, formData.name, formData.symbol);
 
     // Step 3: Register agent token in backend
+    const agentInfo = await getAgentInfo(agentWalletAddress);
+
+    if (agentInfo) {
+      console.log("Agent info: ", agentInfo)
+      const agentTokenAddress = agentInfo.stockTokenAddress;
+      console.log("Agent token address: ", agentTokenAddress)
+    }
+
+    // TO DO KAE: update agent info in backend
 
     // Step 4: Navigate to agent detail page
+
   }
 
   return (
