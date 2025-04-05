@@ -7,7 +7,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  
   useAuth({ requireAuth: true, authUrl: "/signin" });
 
   return (
