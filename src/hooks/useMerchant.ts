@@ -62,33 +62,6 @@ export default function useMerchant() {
     }
   }, [wagmiWalletClient]);
   
-  // State for contract owner - using React Query
-  const { 
-    data: owner, 
-    isLoading: isOwnerLoading, 
-    refetch: refetchOwner 
-  } = useQuery({
-    queryKey: ['contractOwner', provider],
-    queryFn: async () => {
-      if (!provider) return null;
-      return await merchantContractService.getOwner(provider);
-    },
-    enabled: !!provider
-  });
-
-  // Contract address query - useful for many operations
-  const { 
-    data: usdcTokenAddress,
-    isLoading: isUsdcTokenAddressLoading, 
-    refetch: refetchUsdcTokenAddress 
-  } = useQuery({
-    queryKey: ['usdcTokenAddress', provider],
-    queryFn: async () => {
-      if (!provider) return null;
-      return await merchantContractService.getUsdcTokenAddress(provider);
-    },
-    enabled: !!provider
-  });
   
   // Create Agent
   const [createAgentState, setCreateAgentState] = useState<CreateAgentResponse>({
@@ -512,6 +485,7 @@ export default function useMerchant() {
   
   // Keep the original functions for components that don't need React Query's features
   const getAgentInfo = useCallback(async (walletAddress: string): Promise<AgentInfo | null> => {
+    console.log("getAgentInfo", walletAddress);
     if (!provider) return null;
     
     try {
@@ -527,140 +501,12 @@ export default function useMerchant() {
     return wagmiWalletClient?.account?.address;
   }, [wagmiWalletClient]);
   
-  // Gas estimation functions
-  const estimateCreateAgentGas = useCallback(
-    async (walletAddress: string, name: string, symbol: string): Promise<GasEstimation | null> => {
-      if (!signer) return null;
-      
-      try {
-        return await merchantContractService.estimateCreateAgentGas(signer, walletAddress, name, symbol);
-      } catch (error) {
-        console.error('Error estimating create agent gas:', error);
-        return null;
-      }
-    },
-    [signer]
-  );
-  
-  const estimatePurchaseStockGas = useCallback(
-    async (stockTokenAddress: string, tokenAmount: number): Promise<GasEstimation | null> => {
-      if (!signer) return null;
-      
-      try {
-        return await merchantContractService.estimatePurchaseStockGas(signer, stockTokenAddress, tokenAmount);
-      } catch (error) {
-        console.error('Error estimating purchase stock gas:', error);
-        return null;
-      }
-    },
-    [signer]
-  );
-  
-  const estimatePurchaseStockByUsdcGas = useCallback(
-    async (stockTokenAddress: string, usdcAmount: BigNumber): Promise<GasEstimation | null> => {
-      if (!signer) return null;
-      
-      try {
-        return await merchantContractService.estimatePurchaseStockByUsdcGas(signer, stockTokenAddress, usdcAmount);
-      } catch (error) {
-        console.error('Error estimating purchase stock by USDC gas:', error);
-        return null;
-      }
-    },
-    [signer]
-  );
-  
-  const estimateCommitSellStockGas = useCallback(
-    async (stockTokenAddress: string, tokenAmount: number): Promise<GasEstimation | null> => {
-      if (!signer) return null;
-      
-      try {
-        return await merchantContractService.estimateCommitSellStockGas(signer, stockTokenAddress, tokenAmount);
-      } catch (error) {
-        console.error('Error estimating commit sell stock gas:', error);
-        return null;
-      }
-    },
-    [signer]
-  );
-  
-  const estimateFulfillSellStockGas = useCallback(
-    async (): Promise<GasEstimation | null> => {
-      if (!signer) return null;
-      
-      try {
-        return await merchantContractService.estimateFulfillSellStockGas(signer);
-      } catch (error) {
-        console.error('Error estimating fulfill sell stock gas:', error);
-        return null;
-      }
-    },
-    [signer]
-  );
-  
-  const estimateUpdateUsdcTokenAddressGas = useCallback(
-    async (newUsdcTokenAddress: string): Promise<GasEstimation | null> => {
-      if (!signer) return null;
-      
-      try {
-        return await merchantContractService.estimateUpdateUsdcTokenAddressGas(signer, newUsdcTokenAddress);
-      } catch (error) {
-        console.error('Error estimating update USDC token address gas:', error);
-        return null;
-      }
-    },
-    [signer]
-  );
-  
-  // Check if user is owner
-  const isOwner = useCallback((address: string | undefined): boolean => {
-    if (!address || !owner) return false;
-    return address.toLowerCase() === owner.toLowerCase();
-  }, [owner]);
-  
-  // Legacy read functions for backward compatibility
-  const getAgentWalletAddress = useCallback(async (stockTokenAddress: string): Promise<string | null> => {
-    if (!provider) return null;
-    
-    try {
-      return await merchantContractService.getAgentWalletAddress(provider, stockTokenAddress);
-    } catch (error) {
-      console.error('Error getting agent wallet address:', error);
-      return null;
-    }
-  }, [provider]);
-  
-  const getSellShareRequests = useCallback(async (stockTokenAddress: string): Promise<SellShareRequest[]> => {
-    if (!provider) return [];
-    
-    try {
-      return await merchantContractService.getSellShareRequests(provider, stockTokenAddress);
-    } catch (error) {
-      console.error('Error getting sell share requests:', error);
-      return [];
-    }
-  }, [provider]);
-  
-  const getAgentsByCreator = useCallback(async (creatorAddress: string): Promise<string[]> => {
-    if (!provider) return [];
-    
-    try {
-      return await merchantContractService.getAgentsByCreator(provider, creatorAddress);
-    } catch (error) {
-      console.error('Error getting agents by creator:', error);
-      return [];
-    }
-  }, [provider]);
+
   
   // Return everything
   return {
     // Contract state
-    owner,
-    isOwnerLoading,
-    isOwner,
     getConnectedAddress,
-    usdcTokenAddress,
-    isUsdcTokenAddressLoading,
     
     // Write functions with states
     createAgent,
@@ -689,20 +535,5 @@ export default function useMerchant() {
     
     // Legacy read functions (for backward compatibility)
     getAgentInfo,
-    getAgentWalletAddress,
-    getSellShareRequests,
-    getAgentsByCreator,
-    
-    // Refetch functions
-    refetchOwner,
-    refetchUsdcTokenAddress,
-    
-    // Gas estimation functions
-    estimateCreateAgentGas,
-    estimatePurchaseStockGas,
-    estimatePurchaseStockByUsdcGas,
-    estimateCommitSellStockGas,
-    estimateFulfillSellStockGas,
-    estimateUpdateUsdcTokenAddressGas,
   };
 }
