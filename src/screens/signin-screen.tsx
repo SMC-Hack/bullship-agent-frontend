@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/router";
 import useAuth from "@/hooks/useAuth";
-import SignInLogo from "@/components/signin/SignInLogo";
-import SignInForm from "@/components/signin/SignInForm";
-import SignInTerms from "@/components/signin/SignInTerms";
+import SignInLogo from "@/components/signin/sign-in-logo";
+import SignInForm from "@/components/signin/sign-in-form";
+import SignInTerms from "@/components/signin/sign-in-terms";
 
 const SignInScreen = () => {
   const { session, mounted } = useAuth();

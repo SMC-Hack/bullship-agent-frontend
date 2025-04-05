@@ -2,18 +2,19 @@ import { useCallback, useEffect, useState } from 'react';
 import { usePublicClient, useWalletClient } from 'wagmi';
 import { BigNumber, ethers } from 'ethers';
 import merchantContractService, { AgentInfo, SellShareRequest, GasEstimation } from '@/services/merchant-contract.service';
+import { PublicClient, WalletClient } from 'viem';
 
 // Helper adapters for compatibility between wagmi v2 and ethers v5
-function walletClientToEthersSigner(walletClient: any): ethers.Signer | null {
+function walletClientToEthersSigner(walletClient: WalletClient): ethers.Signer | null {
   if (!walletClient) return null;
   // Create a custom ethers signer
   const ethersProvider = new ethers.providers.Web3Provider(
     walletClient.transport as unknown as ethers.providers.ExternalProvider
   );
-  return ethersProvider.getSigner(walletClient.account.address);
+  return ethersProvider.getSigner(walletClient.account?.address || '');
 }
 
-function publicClientToEthersProvider(publicClient: any): ethers.providers.Provider | null {
+function publicClientToEthersProvider(publicClient: PublicClient): ethers.providers.Provider | null {
   if (!publicClient) return null;
   // Use ethers.providers.JsonRpcProvider for most compatibility
   return new ethers.providers.JsonRpcProvider(

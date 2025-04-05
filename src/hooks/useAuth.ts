@@ -1,7 +1,7 @@
 import authService from "@/services/auth.service";
 import useAuthStore from "@/store/auth-store";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { jwtDecode } from "jwt-decode";
 
@@ -35,12 +35,12 @@ const useAuth = (options: {
     return updatedAppSession[address];
   };
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     if (!address) return;
     const updatedAppSession = appSession || {};
     delete updatedAppSession[address];
     setAppSession(updatedAppSession);
-  };
+  }, [address, appSession, setAppSession]);
 
   useEffect(() => {
     setMounted(true);

@@ -1,6 +1,6 @@
 import type React from "react";
-import { AgentIdentityForm } from "@/components/create/AgentIdentityForm";
-import { TradingStrategyForm } from "@/components/create/TradingStrategyForm";
+import { AgentIdentityForm } from "@/components/create/agent-identity-form";
+import { TradingStrategyForm } from "@/components/create/trading-strategy-form";
 import useAvailableChains from "@/hooks/useAvailableChains";
 import useAvailableTokensInChains from "@/hooks/useAvailableTokensInChains";
 import useCreateAgentFormStore from "@/store/create-agent-form-store";

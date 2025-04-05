@@ -61,7 +61,7 @@ export function TokenSelector({ availableTokens, selectedTokens, onTokenToggle, 
 
         {selectedTokensList.length === 0 && (
           <Card className="col-span-2 p-6 text-center text-muted-foreground bg-muted/50">
-            No tokens selected. Click "Add Tokens" to select trading tokens.
+            No tokens selected. Click &quot;Add Tokens&quot; to select trading tokens.
           </Card>
         )}
       </div>
