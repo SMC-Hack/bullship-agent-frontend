@@ -18,6 +18,7 @@ export default function AgentScreen() {
   // Mock data for demonstration
   const agent = {
     id: paramsId,
+    stockTokenAddress: "0xEfad80c27e21c443d4d49E68588bac3fBABeC58b", // TODO: get from backend
     name: "Alpha Trader",
     symbol: "ALPHA",
     description: "A sophisticated AI agent specializing in momentum trading strategies across major cryptocurrencies.",
