@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import useMerchant from "@/hooks/useMerchant"
+import { ethers } from "ethers"
 
 interface BuyModalProps {
   agent: {
@@ -13,6 +15,7 @@ interface BuyModalProps {
     name: string
     symbol: string
     image: string
+    stockTokenAddress: string
   }
   onClose: () => void
 }
@@ -20,7 +23,7 @@ interface BuyModalProps {
 const BuyModal = ({ agent, onClose }: BuyModalProps) => {
   const [amount, setAmount] = useState("100")
   const [isProcessing, setIsProcessing] = useState(false)
-
+  const { purchaseStockByUsdc } = useMerchant()
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9.]/g, "")
     setAmount(value)
@@ -32,6 +35,8 @@ const BuyModal = ({ agent, onClose }: BuyModalProps) => {
 
   const handleBuy = async () => {
     setIsProcessing(true)
+
+    await purchaseStockByUsdc(agent.stockTokenAddress, ethers.utils.parseUnits(amount, 6))
 
     // Simulate transaction processing
     setTimeout(() => {
