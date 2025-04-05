@@ -1,25 +1,11 @@
 import type React from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ArrowUpRight, ArrowDownRight } from "lucide-react";
-import { Area, AreaChart, ResponsiveContainer } from "recharts";
-import { cn } from "@/lib/utils";
-import { useState } from "react";
 import AgentCardSkeleton from "@/components/agents/agent-card-skeleton";
+import { Agent } from "@/interfaces/agent.interface";
 
 interface AgentCardProps {
-  agent?: {
-    id: string;
-    name: string;
-    symbol: string;
-    aum: number;
-    pnl: number;
-    image: string;
-    performance?: Array<{
-      timestamp: string;
-      value: number;
-    }>;
-  };
+  agent?: Agent | undefined | null;
   isLoading?: boolean;
 }
 
@@ -36,8 +22,6 @@ const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
     { timestamp: "6", value: 160 },
   ];
 
-  const performanceData = agent?.performance || defaultData;
-
   const handleCardClick = () => {
     router.push(`/agent/${agent?.id}`);
   };
@@ -46,14 +30,6 @@ const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
     if (e.key === "Enter" || e.key === " ") {
       handleCardClick();
     }
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(value);
   };
 
   if (isLoading || !agent) {
@@ -72,7 +48,7 @@ const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
       <div className="flex items-center">
         <div className="relative h-12 w-12">
           <Image
-            src={agent.image || "/placeholder.svg"}
+            src={agent.imageUrl || "/placeholder.svg"}
             alt={agent.name}
             fill
             className="rounded-full object-cover"
@@ -80,12 +56,12 @@ const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
         </div>
         <div>
           <h3 className="font-semibold text-gray-900">{agent.name}</h3>
-          <p className="text-sm text-gray-500">${agent.symbol}</p>
+          <p className="text-sm text-gray-500">${agent.stockSymbol}</p>
         </div>
       </div>
 
       {/* Middle section: Chart */}
-      <div className="flex-1 h-12 mx-6">
+      {/* <div className="flex-1 h-12 mx-6">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={performanceData}
@@ -100,10 +76,10 @@ const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
             />
           </AreaChart>
         </ResponsiveContainer>
-      </div>
+      </div> */}
 
       {/* Right section: Compact Metrics */}
-      <div className="flex flex-col items-end text-right">
+      {/* <div className="flex flex-col items-end text-right">
         <div
           className={cn(
             "flex items-center text-sm font-medium",
@@ -118,7 +94,7 @@ const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
           {Math.abs(agent.pnl)}%
         </div>
         <p className="text-xs text-gray-500">{formatCurrency(agent.aum)}</p>
-      </div>
+      </div> */}
     </div>
   );
 };

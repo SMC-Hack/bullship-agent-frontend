@@ -116,6 +116,7 @@ export default function CreateScreen() {
         description: formData.description,
         strategy: formData.strategy,
         selectedTokens: JSON.stringify(selectedTokenList),
+        imageUrl: profileImage || "",
       };
 
       const agent = await agentService.createAgent(dto, accessToken);

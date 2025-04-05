@@ -2,19 +2,11 @@ import { TrendingUp, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import AgentCard from "@/components/agents/agent-card"
-
-interface Agent {
-  id: string
-  name: string
-  symbol: string
-  aum: number
-  pnl: number
-  image: string
-}
+import { AgentResponse } from "@/types/agent"
 
 interface AgentTabsProps {
-  topAgents: Agent[]
-  watchlistAgents: Agent[]
+  topAgents: Pick<AgentResponse, "id" | "name" | "symbol" | "aum" | "pnl" | "imageUrl">[];
+  watchlistAgents: Pick<AgentResponse, "id" | "name" | "symbol" | "aum" | "pnl" | "imageUrl">[];
 }
 
 export default function AgentTabs({ topAgents, watchlistAgents }: AgentTabsProps) {

@@ -8,16 +8,11 @@ import { Slider } from "@/components/ui/slider"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import useMerchant from "@/hooks/useMerchant"
 import { ethers } from "ethers"
+import { AgentResponse } from "@/types/agent"
 
 interface BuyModalProps {
-  agent: {
-    id: string
-    name: string
-    symbol: string
-    image: string
-    stockTokenAddress: string
-  }
-  onClose: () => void
+  agent: Pick<AgentResponse, "id" | "name" | "symbol" | "imageUrl" | "stockTokenAddress">;
+  onClose: () => void;
 }
 
 const BuyModal = ({ agent, onClose }: BuyModalProps) => {
@@ -36,7 +31,7 @@ const BuyModal = ({ agent, onClose }: BuyModalProps) => {
   const handleBuy = async () => {
     setIsProcessing(true)
 
-    await purchaseStockByUsdc(agent.stockTokenAddress, ethers.utils.parseUnits(amount, 6))
+    await purchaseStockByUsdc(agent.stockTokenAddress || "", ethers.utils.parseUnits(amount, 6))
 
     // Simulate transaction processing
     setTimeout(() => {
@@ -47,16 +42,16 @@ const BuyModal = ({ agent, onClose }: BuyModalProps) => {
   }
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
+    <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-center">Buy Agent Tokens</DialogTitle>
+          <DialogTitle className="text-center">Buy ${agent.symbol}</DialogTitle>
         </DialogHeader>
 
         <div className="flex items-center justify-center mb-6">
           <div className="relative h-16 w-16 mr-3">
             <Image
-              src={agent.image || "/placeholder.svg"}
+              src={agent.imageUrl || "/placeholder.svg"}
               alt={agent.name}
               fill
               className="rounded-full object-cover"

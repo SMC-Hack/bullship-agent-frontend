@@ -1,10 +1,16 @@
 export interface Agent {
-  id: string;
+  id: number;
   name: string;
-  symbol: string;
-  aum: number;
-  pnl: number;
-  image: string;
+  description: string;
+  userId: number;
+  stockSymbol: string;
+  stockAddress: string;
+  imageUrl: string | null;
+  selectedTokens: string;
+  strategy: string;
+  isRunning: boolean;
+  nextFinalizeAt: Date | null;
+  createdAt: Date;
 }
 
 export interface GetAgentsQuery {
@@ -19,26 +25,17 @@ export interface CreateAgentDto {
   name: string;
   stockSymbol: string;
   description: string;
-  imageUrl?: string;
   strategy: string;
   selectedTokens: string;
+  imageUrl?: string | undefined
 }
 
 export interface CreateAgentTokenDto {
   stockAddress: string;
 }
 
-export interface AgentResponse {
+export interface AgentResponse extends Agent {}
+
+export interface CreateAgentResponse extends Agent {
   walletAddress: string;
-  id: number;
-  name: string;
-  createdAt: Date;
-  userId: number;
-  stockSymbol: string | null;
-  stockAddress: string | null;
-  imageUrl: string | null;
-  selectedTokens: string;
-  strategy: string;
-  isRunning: boolean;
-  nextFinalizeAt: Date | null;
 }

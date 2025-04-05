@@ -27,7 +27,7 @@ const AgentCardSmall = ({ agent, isLoading }: AgentCardSmallProps) => {
       <CardContent className="p-3 h-full flex flex-col justify-between">
         <div className="relative h-8 w-8 rounded-full overflow-hidden">
           <Image 
-            src={agent.image || "/placeholder.svg"} 
+            src={agent.imageUrl || "/placeholder.svg"} 
             alt={agent.name} 
             fill 
             className="object-cover"
@@ -37,7 +37,7 @@ const AgentCardSmall = ({ agent, isLoading }: AgentCardSmallProps) => {
           <h3 className="text-sm font-medium text-gray-900 truncate">
             {agent.name}
           </h3>
-          <div className={cn(
+          {/* <div className={cn(
             "flex items-center text-xs font-medium",
             agent.pnl >= 0 ? "text-green-600" : "text-red-600"
           )}>
@@ -47,7 +47,7 @@ const AgentCardSmall = ({ agent, isLoading }: AgentCardSmallProps) => {
               <ArrowDownRight size={12} className="mr-0.5" />
             )}
             {Math.abs(agent.pnl)}%
-          </div>
+          </div> */}
         </div>
       </CardContent>
     </Card>

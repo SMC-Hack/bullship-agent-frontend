@@ -1,11 +1,11 @@
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import AgentCardSmall from "@/components/agents/agent-card-small";
-import { Agent } from "@/interfaces/agent.interface";
 import AgentCardSmallSkeleton from "../agents/agent-card-small-skeleton";
+import { Agent } from "@/interfaces/agent.interface";
 
 interface LatestAgentsProps {
-  agents?: Agent[],
-  isLoading?: boolean
+  agents?: Agent[] | null | undefined;
+  isLoading?: boolean;
 }
 
 export default function LatestAgents({ agents, isLoading }: LatestAgentsProps) {

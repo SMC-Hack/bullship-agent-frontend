@@ -6,16 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { AgentResponse } from "@/types/agent"
 
 interface SellModalProps {
-  agent: {
-    id: string
-    name: string
-    symbol: string
-    image: string
-    balance?: number
-  }
-  onClose: () => void
+  agent: Pick<AgentResponse, "id" | "name" | "symbol" | "imageUrl" | "stockTokenAddress">;
+  onClose: () => void;
 }
 
 const SellModal = ({ agent, onClose }: SellModalProps) => {
@@ -23,7 +18,7 @@ const SellModal = ({ agent, onClose }: SellModalProps) => {
   const [isProcessing, setIsProcessing] = useState(false)
 
   // Mock data
-  const agentBalance = agent.balance || 100
+  const agentBalance = 100
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9.]/g, "")
@@ -55,7 +50,7 @@ const SellModal = ({ agent, onClose }: SellModalProps) => {
         <div className="flex items-center justify-center mb-6">
           <div className="relative h-16 w-16 mr-3">
             <Image
-              src={agent.image || "/placeholder.svg"}
+              src={agent.imageUrl || "/placeholder.svg"}
               alt={agent.name}
               fill
               className="rounded-full object-cover"
@@ -107,9 +102,7 @@ const SellModal = ({ agent, onClose }: SellModalProps) => {
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="flex justify-between mb-2">
               <span className="text-gray-600">Amount</span>
-              <span className="font-medium">
-                {amount} ${agent.symbol}
-              </span>
+              <span className="font-medium">${amount} ${agent.symbol}</span>
             </div>
             <div className="flex justify-between mb-2">
               <span className="text-gray-600">Fee (1%)</span>
@@ -118,7 +111,7 @@ const SellModal = ({ agent, onClose }: SellModalProps) => {
             <div className="border-t pt-2 mt-2 flex justify-between">
               <span className="text-gray-700 font-medium">You will receive</span>
               <span className="font-semibold">
-                ${Number.parseFloat(amount) - Number.parseFloat(amount) * 0.01} USDC
+                ${(Number.parseFloat(amount) - Number.parseFloat(amount) * 0.01).toFixed(2)} USDC
               </span>
             </div>
           </div>

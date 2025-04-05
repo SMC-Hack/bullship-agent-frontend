@@ -3,8 +3,8 @@ import AgentCardSkeleton from "../agents/agent-card-skeleton"
 import { Agent } from "@/interfaces/agent.interface"
 
 interface TrendingAgentsProps {
-  agents?: Agent[],
-  isLoading?: boolean
+  agents?: Agent[] | null | undefined;
+  isLoading?: boolean;
 }
 
 export default function TrendingAgents({ agents, isLoading }: TrendingAgentsProps) {
