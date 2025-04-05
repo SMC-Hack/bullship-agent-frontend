@@ -3,7 +3,7 @@ import Heading from "@/components/home/heading";
 import BannerCarousel from "@/components/home/banner-carousel";
 import LatestAgents from "@/components/home/latest-agents";
 import useTopAgents from "@/hooks/useTopAgents";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useLatestAgents from "@/hooks/useLatestAgents";
 
 export default function HomeScreen() {

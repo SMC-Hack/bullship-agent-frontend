@@ -8,7 +8,8 @@ import AgentCardSmallSkeleton from './agent-card-small-skeleton';
 import { Agent } from '@/interfaces/agent.interface';
 import { useEnsName } from 'wagmi';
 import { sepolia } from 'viem/chains';
-
+import { useEffect } from 'react';
+import useAgent from '@/hooks/useAgent';
 interface AgentCardSmallProps {
   agent?: Agent;
   isLoading?: boolean;
@@ -20,11 +21,14 @@ const AgentCardSmall = ({ agent, isLoading }: AgentCardSmallProps) => {
     chainId: sepolia.id,
   });
 
+  const { data: agentData } = useAgent(agent?.id?.toString() || '');
+
   const router = useRouter();
 
   if (isLoading || !agent) {
     return <AgentCardSmallSkeleton />;
   }
+
 
   return (
     <Card
@@ -42,17 +46,17 @@ const AgentCardSmall = ({ agent, isLoading }: AgentCardSmallProps) => {
         </div>
         <div className="space-y-1">
           <h3 className="text-sm font-medium text-gray-900 truncate">{name}</h3>
-          {/* <div className={cn(
+           <div className={cn(
             "flex items-center text-xs font-medium",
-            agent.pnl >= 0 ? "text-green-600" : "text-red-600"
+            agent.balanceSnapshots?.pnl && agent.balanceSnapshots?.pnl >= 0 ? "text-green-600" : "text-red-600"
           )}>
-            {agent.pnl >= 0 ? (
+            {agent.balanceSnapshots?.pnl && agent.balanceSnapshots?.pnl >= 0 ? (
               <ArrowUpRight size={12} className="mr-0.5" />
             ) : (
               <ArrowDownRight size={12} className="mr-0.5" />
             )}
-            {Math.abs(agent.pnl)}%
-          </div> */}
+            {Math.abs(agent.balanceSnapshots?.pnl || 0)}%
+          </div> 
         </div>
       </CardContent>
     </Card>

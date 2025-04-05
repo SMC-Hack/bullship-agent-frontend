@@ -1,3 +1,16 @@
+export interface BalanceSnapshot {
+  id: number;
+  agentId: number;
+  balanceUSD: number;
+  pnl: number;
+  createdAt: Date;
+}
+
+export interface TimeSeriesResult {
+  timestamp: number;
+  value_usd: number;
+}
+
 export interface Agent {
   id: number;
   name: string;
@@ -11,12 +24,23 @@ export interface Agent {
   isRunning: boolean;
   nextFinalizeAt: Date | null;
   createdAt: Date;
+  balanceSnapshots?: BalanceSnapshot;
   walletKey: {
     address: string;
   };
   user: {
     walletAddress: string;
   };
+  month: {
+    results: TimeSeriesResult[]
+  },
+  week: {
+    results: TimeSeriesResult[],
+    result: TimeSeriesResult[] // TODO: notify backend to change this
+  },
+  year: {
+    results: TimeSeriesResult[]
+  }
 }
 
 export interface GetAgentsQuery {

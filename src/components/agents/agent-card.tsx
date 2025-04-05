@@ -5,6 +5,14 @@ import AgentCardSkeleton from '@/components/agents/agent-card-skeleton';
 import { Agent } from '@/interfaces/agent.interface';
 import { useEnsName } from 'wagmi';
 import { sepolia } from 'viem/chains';
+import { Area } from 'recharts';
+import { AreaChart } from 'recharts';
+import { ResponsiveContainer } from 'recharts';
+import { useEffect, useMemo } from 'react';
+import { ArrowDownRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ArrowUpRight } from 'lucide-react';
+import { formatCurrency } from '@/utils/format';
 
 interface AgentCardProps {
   agent?: Agent | undefined | null;
@@ -20,14 +28,15 @@ const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
   const router = useRouter();
 
   // Default performance data if none provided
-  const defaultData = [
-    { timestamp: '1', value: 100 },
-    { timestamp: '2', value: 120 },
-    { timestamp: '3', value: 110 },
-    { timestamp: '4', value: 140 },
-    { timestamp: '5', value: 130 },
-    { timestamp: '6', value: 160 },
-  ];
+  const defaultData = useMemo(() => {
+    return agent?.week?.result.map((result) => ({
+      timestamp: result.timestamp,
+      value: result.value_usd,
+    })) ?? [];
+  }, [agent]);
+
+
+
 
   const handleCardClick = () => {
     router.push(`/agent/${agent?.id}`);
@@ -68,40 +77,40 @@ const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
       </div>
 
       {/* Middle section: Chart */}
-      {/* <div className="flex-1 h-12 mx-6">
+       <div className="flex-1 h-12 mx-6">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
-            data={performanceData}
+            data={defaultData}
             margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
           >
             <Area
               type="monotone"
               dataKey="value"
-              stroke={agent.pnl >= 0 ? "#16a34a" : "#dc2626"}
-              fill={agent.pnl >= 0 ? "#16a34a20" : "#dc262620"}
+              stroke={agent.balanceSnapshots?.pnl && agent.balanceSnapshots?.pnl >= 0 ? "#16a34a" : "#dc2626"}
+              fill={agent.balanceSnapshots?.pnl && agent.balanceSnapshots?.pnl >= 0 ? "#16a34a20" : "#dc262620"}
               strokeWidth={1.5}
             />
           </AreaChart>
         </ResponsiveContainer>
-      </div> */}
+      </div>  
 
       {/* Right section: Compact Metrics */}
-      {/* <div className="flex flex-col items-end text-right">
+      <div className="flex flex-col items-end text-right">
         <div
           className={cn(
             "flex items-center text-sm font-medium",
-            agent.pnl >= 0 ? "text-green-600" : "text-red-600"
+            agent.balanceSnapshots?.pnl && agent.balanceSnapshots?.pnl >= 0 ? "text-green-600" : "text-red-600"
           )}
         >
-          {agent.pnl >= 0 ? (
+          {agent.balanceSnapshots?.pnl && agent.balanceSnapshots?.pnl >= 0 ? (
             <ArrowUpRight size={14} className="mr-0.5" />
           ) : (
             <ArrowDownRight size={14} className="mr-0.5" />
           )}
-          {Math.abs(agent.pnl)}%
+          {Math.abs(agent.balanceSnapshots?.pnl || 0)}%
         </div>
-        <p className="text-xs text-gray-500">{formatCurrency(agent.aum)}</p>
-      </div> */}
+        <p className="text-xs text-gray-500">{formatCurrency(agent.balanceSnapshots?.balanceUSD || 0)}</p>
+      </div>
     </div>
   );
 };
