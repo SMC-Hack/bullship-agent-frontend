@@ -16,7 +16,7 @@ interface AgentCardSmallProps {
 
 const AgentCardSmall = ({ agent, isLoading }: AgentCardSmallProps) => {
   const { data: name } = useEnsName({
-    address: agent?.walletKey.address as `0x${string}`,
+    address: (agent?.walletKey?.address || '0x') as `0x${string}`,
     chainId: sepolia.id,
   });
 
