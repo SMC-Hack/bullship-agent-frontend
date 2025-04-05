@@ -34,6 +34,7 @@ interface ContractWriteResponse {
 
 interface CreateAgentResponse extends ContractWriteResponse {}
 interface PurchaseStockResponse extends ContractWriteResponse {}
+interface PurchaseStockByUsdcResponse extends ContractWriteResponse {}
 interface CommitSellStockResponse extends ContractWriteResponse {}
 interface FulfillSellStockResponse extends ContractWriteResponse {}
 interface UpdateUsdcTokenAddressResponse extends ContractWriteResponse {}
@@ -189,6 +190,58 @@ export default function useMerchant() {
       throw error;
     }
   }, [signer, purchaseStockState]);
+  
+  // Purchase Stock By USDC
+  const [purchaseStockByUsdcState, setPurchaseStockByUsdcState] = useState<PurchaseStockByUsdcResponse>({
+    isLoading: false,
+    isSuccess: false,
+    isError: false,
+    error: null,
+    txHash: null,
+    reset: () => setPurchaseStockByUsdcState({
+      isLoading: false,
+      isSuccess: false,
+      isError: false,
+      error: null,
+      txHash: null,
+      reset: purchaseStockByUsdcState.reset
+    })
+  });
+  
+  const purchaseStockByUsdc = useCallback(async (stockTokenAddress: string, usdcAmount: BigNumber) => {
+    if (!signer) return;
+    
+    setPurchaseStockByUsdcState({
+      ...purchaseStockByUsdcState,
+      isLoading: true,
+      isSuccess: false,
+      isError: false,
+      error: null,
+      txHash: null
+    });
+    
+    try {
+      const tx = await merchantContractService.purchaseStockByUsdc(signer, stockTokenAddress, usdcAmount);
+      const receipt = await tx.wait();
+      
+      setPurchaseStockByUsdcState({
+        ...purchaseStockByUsdcState,
+        isLoading: false,
+        isSuccess: true,
+        txHash: receipt.transactionHash
+      });
+      
+      return receipt;
+    } catch (error) {
+      setPurchaseStockByUsdcState({
+        ...purchaseStockByUsdcState,
+        isLoading: false,
+        isError: true,
+        error: error as Error
+      });
+      throw error;
+    }
+  }, [signer, purchaseStockByUsdcState]);
   
   // Commit Sell Stock
   const [commitSellStockState, setCommitSellStockState] = useState<CommitSellStockResponse>({
@@ -349,6 +402,8 @@ export default function useMerchant() {
   
   // Read functions
   const getAgentInfo = useCallback(async (walletAddress: string): Promise<AgentInfo | null> => {
+    console.log('provider', provider)
+    console.log('walletAddress', walletAddress)
     if (!provider) return null;
     
     try {
@@ -432,6 +487,20 @@ export default function useMerchant() {
     [signer]
   );
   
+  const estimatePurchaseStockByUsdcGas = useCallback(
+    async (stockTokenAddress: string, usdcAmount: BigNumber): Promise<GasEstimation | null> => {
+      if (!signer) return null;
+      
+      try {
+        return await merchantContractService.estimatePurchaseStockByUsdcGas(signer, stockTokenAddress, usdcAmount);
+      } catch (error) {
+        console.error('Error estimating purchase stock by USDC gas:', error);
+        return null;
+      }
+    },
+    [signer]
+  );
+  
   const estimateCommitSellStockGas = useCallback(
     async (stockTokenAddress: string, tokenAmount: number): Promise<GasEstimation | null> => {
       if (!signer) return null;
@@ -488,6 +557,9 @@ export default function useMerchant() {
     purchaseStock,
     purchaseStockState,
     
+    purchaseStockByUsdc,
+    purchaseStockByUsdcState,
+    
     commitSellStock,
     commitSellStockState,
     
@@ -506,6 +578,7 @@ export default function useMerchant() {
     // Gas estimation functions
     estimateCreateAgentGas,
     estimatePurchaseStockGas,
+    estimatePurchaseStockByUsdcGas,
     estimateCommitSellStockGas,
     estimateFulfillSellStockGas,
     estimateUpdateUsdcTokenAddressGas,

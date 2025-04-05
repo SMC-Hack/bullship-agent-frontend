@@ -66,6 +66,18 @@ class MerchantContractService {
   }
 
   /**
+   * Purchase stock tokens for an agent by specifying the USDC amount
+   */
+  async purchaseStockByUsdc(
+    signer: ethers.Signer,
+    stockTokenAddress: string, 
+    usdcAmount: BigNumber
+  ): Promise<ethers.ContractTransaction> {
+    const contract = getAgentMerchantContract(signer);
+    return contract.purchaseStockByUsdc(stockTokenAddress, usdcAmount);
+  }
+
+  /**
    * Commit to selling stock tokens
    */
   async commitSellStock(
@@ -210,6 +222,28 @@ class MerchantContractService {
     const contract = getAgentMerchantContract(signer);
     
     const gasLimit = await contract.estimateGas.purchaseStock(stockTokenAddress, tokenAmount);
+    const gasPrice = await signer.getGasPrice();
+    const estimatedCost = gasLimit.mul(gasPrice);
+    
+    return {
+      gasLimit,
+      gasPrice,
+      estimatedCost,
+      estimatedCostInEth: ethers.utils.formatEther(estimatedCost)
+    };
+  }
+
+  /**
+   * Estimate gas for purchasing stock by specifying the USDC amount
+   */
+  async estimatePurchaseStockByUsdcGas(
+    signer: ethers.Signer,
+    stockTokenAddress: string,
+    usdcAmount: BigNumber
+  ): Promise<GasEstimation> {
+    const contract = getAgentMerchantContract(signer);
+    
+    const gasLimit = await contract.estimateGas.purchaseStockByUsdc(stockTokenAddress, usdcAmount);
     const gasPrice = await signer.getGasPrice();
     const estimatedCost = gasLimit.mul(gasPrice);
     
