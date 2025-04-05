@@ -1,63 +1,78 @@
+import { useState } from "react"
 import { Label } from "@/components/ui/label"
-
-interface Token {
-  id: string
-  name: string
-}
+import { Card } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+import { TokenInfo } from "@/interfaces/token.interface"
+import { Button } from "@/components/ui/button"
+import { TokenSelectorModal } from "@/components/modals/token-selector-modal"
+import { PlusIcon } from "lucide-react"
+import { TokenCard } from "@/components/token/token-card"
 
 interface TokenSelectorProps {
-  availableTokens: Token[]
+  availableTokens: TokenInfo[]
   selectedTokens: string[]
-  onTokenToggle: (tokenId: string) => void
+  onTokenToggle: (address: string) => void
+  isLoading?: boolean
 }
 
-export function TokenSelector({ availableTokens, selectedTokens, onTokenToggle }: TokenSelectorProps) {
-  return (
-    <div>
-      <Label>Trading Tokens</Label>
-      <div className="grid grid-cols-2 gap-2 mt-2">
-        {availableTokens.map((token) => (
-          <div
-            key={token.id}
-            className={`border rounded-lg p-3 cursor-pointer transition-colors ${
-              selectedTokens.includes(token.id)
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200 hover:border-gray-300"
-            }`}
-            onClick={() => onTokenToggle(token.id)}
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                onTokenToggle(token.id)
-              }
-            }}
-            aria-label={`Select ${token.name}`}
-          >
-            <div className="flex items-center justify-between">
-              <span>{token.name}</span>
-              {selectedTokens.includes(token.id) && (
-                <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                  <svg
-                    width="10"
-                    height="8"
-                    viewBox="0 0 10 8"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1 4L3.5 6.5L9 1"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
+export function TokenSelector({ availableTokens, selectedTokens, onTokenToggle, isLoading = false }: TokenSelectorProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const selectedTokensList = availableTokens.filter(token => selectedTokens.includes(token.address))
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <Label className="text-base font-semibold">Trading Tokens</Label>
+          <Button variant="outline" size="sm" disabled>
+            <PlusIcon className="w-4 h-4 mr-2" />
+            Add Tokens
+          </Button>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {[1, 2, 3, 4].map(i => (
+            <Skeleton key={i} className="h-[72px] w-full" />
+          ))}
+        </div>
       </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <Label className="text-base font-semibold">Trading Tokens</Label>
+        <Button variant="outline" size="sm" onClick={() => setIsModalOpen(true)}>
+          <PlusIcon className="w-4 h-4 mr-2" />
+          Add Tokens
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        {selectedTokensList.map((token) => (
+          <TokenCard
+            key={token.address}
+            token={token}
+            isSelected={true}
+            onSelect={() => onTokenToggle(token.address)}
+            showRemoveButton
+          />
+        ))}
+
+        {selectedTokensList.length === 0 && (
+          <Card className="col-span-2 p-6 text-center text-muted-foreground bg-muted/50">
+            No tokens selected. Click "Add Tokens" to select trading tokens.
+          </Card>
+        )}
+      </div>
+
+      <TokenSelectorModal
+        availableTokens={availableTokens}
+        selectedTokens={selectedTokens}
+        onTokenToggle={onTokenToggle}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   )
 } 

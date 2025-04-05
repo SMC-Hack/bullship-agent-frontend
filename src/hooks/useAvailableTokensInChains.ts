@@ -19,9 +19,20 @@ const useAvailableTokensInChains = (chainIds: number[] | undefined) => {
   const isLoading = queries.some(query => query.isLoading);
   const isError = queries.some(query => query.isError);
   const data = queries.reduce<Record<string, TokenInfo[]>>((acc, query, index) => {
-    if (query.data && chainIds?.[index]) {
-      acc[chainIds[index].toString()] = query.data;
+    if (query.data) {
+      const chainId = chainIds?.[index];
+
+      for (const token of query.data) {
+        token.chainId = chainId;
+
+        if (!acc[token.symbol]) {
+          acc[token.symbol] = [];
+        }
+
+        acc[token.symbol].push(token);
+      }
     }
+
     return acc;
   }, {});
 

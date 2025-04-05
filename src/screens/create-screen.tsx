@@ -7,8 +7,11 @@ import useCreateAgentFormStore from "@/store/create-agent-form-store";
 import { useRouter } from "next/router";
 import useAuth from "@/hooks/useAuth";
 import uploadService from "@/services/upload.service";
-import useMerchant from "@/hooks/useMerchant"
+import useMerchant from "@/hooks/useMerchant";
 import { ethers } from "ethers";
+import agentService from "@/services/agent.service";
+import { CreateAgentDto } from "@/interfaces/agent.interface";
+import { useMemo } from "react";
 
 export default function CreateScreen() {
   const router = useRouter();
@@ -29,19 +32,24 @@ export default function CreateScreen() {
     setSelectedTokens,
   } = useCreateAgentFormStore();
 
+  // const { createAgent, createAgentState, getAgentInfo } = useMerchant();
+
   const accessToken = session?.accessToken || "";
+  const availableTokens = useMemo(() => {
+    return Object.values(tokens ?? {}).map(
+      (chainTokens) => chainTokens[0]
+    );
+  }, [tokens])
 
-  const availableTokens = Object.values(tokens ?? {})
-    .flatMap((chainTokens) =>
-      chainTokens.map((token) => ({
-        id: token.symbol,
-        name: token.name,
-      }))
-    )
-    .slice(0, 10);
-
-  const { createAgent, createAgentState, getAgentInfo } = useMerchant();
-
+  const selectedTokenList = useMemo(() => {
+    return Object.values(tokens ?? {}).flatMap(item => item).filter((token) =>
+      selectedTokens.includes(token.symbol)
+    );
+  }, [tokens, selectedTokens])
+  
+  Object.values(tokens ?? {}).flatMap(item => item).filter((token) =>
+    selectedTokens.includes(token.symbol)
+  );
 
   const handleGoBack = () => {
     if (step > 1) {
@@ -96,26 +104,28 @@ export default function CreateScreen() {
   };
 
   const handleCreateAgent = async () => {
-    const agentWalletAddress = ethers.Wallet.createRandom().address;
-    console.log("Agent wallet address: ", agentWalletAddress)
-
-    // Step 2: Register agent in smart contract
-    await createAgent(agentWalletAddress, formData.name, formData.symbol);
-
-    // Step 3: Register agent token in backend
-    const agentInfo = await getAgentInfo(agentWalletAddress);
-
-    if (agentInfo) {
-      console.log("Agent info: ", agentInfo)
-      const agentTokenAddress = agentInfo.stockTokenAddress;
-      console.log("Agent token address: ", agentTokenAddress)
+    const dto: CreateAgentDto = {
+      name: formData.name,
+      strategy: formData.tradingInstructions,
+      selectedTokens: JSON.stringify(selectedTokenList),
     }
 
-    // TO DO KAE: update agent info in backend
-
-    // Step 4: Navigate to agent detail page
-
-  }
+    console.log(dto);
+    // const agent = await agentService.createAgent(dto)
+    // const agentWalletAddress = ethers.Wallet.createRandom().address;
+    // console.log("Agent wallet address: ", agentWalletAddress)
+    // // Step 2: Register agent in smart contract
+    // await createAgent(agentWalletAddress, formData.name, formData.symbol);
+    // // Step 3: Register agent token in backend
+    // const agentInfo = await getAgentInfo(agentWalletAddress);
+    // if (agentInfo) {
+    //   console.log("Agent info: ", agentInfo)
+    //   const agentTokenAddress = agentInfo.stockTokenAddress;
+    //   console.log("Agent token address: ", agentTokenAddress)
+    // }
+    // // TO DO KAE: update agent info in backend
+    // // Step 4: Navigate to agent detail page
+  };
 
   return (
     <div className="container px-4 py-6 max-w-md mx-auto">

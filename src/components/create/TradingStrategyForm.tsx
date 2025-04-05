@@ -2,14 +2,10 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { TokenSelector } from "./TokenSelector"
-
-interface Token {
-  id: string
-  name: string
-}
+import { TokenInfo } from "@/interfaces/token.interface"
 
 interface TradingStrategyFormProps {
-  availableTokens: Token[]
+  availableTokens: TokenInfo[]
   selectedTokens: string[]
   tradingInstructions: string
   onTokenToggle: (tokenId: string) => void
