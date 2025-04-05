@@ -13,6 +13,7 @@ import { ArrowDownRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ArrowUpRight } from 'lucide-react';
 import { formatCurrency } from '@/utils/format';
+import CountdownTimer from './countdown-timer';
 
 interface AgentCardProps {
   agent?: Agent | undefined | null;
@@ -53,12 +54,15 @@ const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
 
   return (
     <div
-      className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center hover:shadow-md transition-shadow duration-200 cursor-pointer"
+      className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center hover:shadow-md transition-shadow duration-200 cursor-pointer relative"
       onClick={handleCardClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}
       aria-label={`View details for ${agent?.name}`}
     >
+      <div className="absolute -top-5 -right-5">
+        <CountdownTimer />
+      </div>
       {/* Left section: Avatar and Name */}
       <div className="flex items-center">
         <div className="relative h-12 w-12 mr-3">
