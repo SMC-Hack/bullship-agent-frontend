@@ -7,6 +7,8 @@ import useCreateAgentFormStore from "@/store/create-agent-form-store";
 import { useRouter } from "next/router";
 import useAuth from "@/hooks/useAuth";
 import uploadService from "@/services/upload.service";
+import useMerchant from "@/hooks/useMerchant"
+import { ethers } from "ethers";
 
 export default function CreateScreen() {
   const router = useRouter();
@@ -37,6 +39,9 @@ export default function CreateScreen() {
       }))
     )
     .slice(0, 10);
+
+  const { createAgent, createAgentState, getAgentInfo } = useMerchant();
+
 
   const handleGoBack = () => {
     if (step > 1) {
@@ -91,18 +96,26 @@ export default function CreateScreen() {
   };
 
   const handleCreateAgent = async () => {
-    // Step 1: Create agent wallet in backend
-    // const agent = await agentService.createAgent({
-    //   name: formData.name,
-    //   strategy: formData.tradingInstructions,
-    //   selectedTokens: selectedTokens.join(","),
-    // })
+    const agentWalletAddress = ethers.Wallet.createRandom().address;
+    console.log("Agent wallet address: ", agentWalletAddress)
+
     // Step 2: Register agent in smart contract
+    await createAgent(agentWalletAddress, formData.name, formData.symbol);
+
     // Step 3: Register agent token in backend
+    const agentInfo = await getAgentInfo(agentWalletAddress);
+
+    if (agentInfo) {
+      console.log("Agent info: ", agentInfo)
+      const agentTokenAddress = agentInfo.stockTokenAddress;
+      console.log("Agent token address: ", agentTokenAddress)
+    }
+
+    // TO DO KAE: update agent info in backend
+
     // Step 4: Navigate to agent detail page
 
-    console.log({ formData, selectedTokens, profileImage });
-  };
+  }
 
   return (
     <div className="container px-4 py-6 max-w-md mx-auto">
