@@ -1,4 +1,6 @@
+import axios from 'axios';
 import { sleep } from "@/utils/time";
+import { AgentResponse, CreateAgentDto, CreateAgentTokenDto, GetAgentsQuery } from '@/interfaces/agent.interface';
 
 const PAGE_SIZE = 2;
 
@@ -82,9 +84,66 @@ const fetchLatestAgents = async (page: number) => {
   return LATEST_AGENTS.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 };
 
+const fetchAgents = async (query: GetAgentsQuery = {}): Promise<AgentResponse[]> => {
+  try {
+    const params = new URLSearchParams();
+    if (query.page) params.append('page', query.page.toString());
+    if (query.limit) params.append('limit', query.limit.toString());
+    if (query.search) params.append('search', query.search);
+    if (query.sortBy) params.append('sortBy', query.sortBy);
+    if (query.sortDirection) params.append('sortDirection', query.sortDirection);
+
+    const { data } = await axios.get<AgentResponse[]>(
+      `${process.env.NEXT_PUBLIC_API_URL}/agent?${params.toString()}`
+    );
+    return data;
+  } catch (error) {
+    throw new Error('Failed to fetch agents');
+  }
+};
+
+const fetchAgent = async (agentId: string): Promise<AgentResponse> => {
+  try {
+    const { data } = await axios.get<AgentResponse>(
+      `${process.env.NEXT_PUBLIC_API_URL}/agent/${agentId}`
+    );
+    return data;
+  } catch (error) {
+    throw new Error('Failed to fetch agent');
+  }
+};
+
+const createAgent = async (createAgentDto: CreateAgentDto): Promise<AgentResponse> => {
+  try {
+    const { data } = await axios.post<AgentResponse>(
+      `${process.env.NEXT_PUBLIC_API_URL}/agent`,
+      createAgentDto
+    );
+    return data;
+  } catch (error) {
+    throw new Error('Failed to create agent');
+  }
+};
+
+const createAgentToken = async (agentId: string, createAgentTokenDto: CreateAgentTokenDto): Promise<AgentResponse> => {
+  try {
+    const { data } = await axios.post<AgentResponse>(
+      `${process.env.NEXT_PUBLIC_API_URL}/agent/${agentId}/token`,
+      createAgentTokenDto
+    );
+    return data;
+  } catch (error) {
+    throw new Error('Failed to create agent token');
+  }
+};
+
 const agentService = {
   fetchTopAgents,
   fetchLatestAgents,
+  fetchAgents,
+  fetchAgent,
+  createAgent,
+  createAgentToken,
 };
 
 export default agentService;
