@@ -7,21 +7,23 @@ import { TokenInfo } from "@/interfaces/token.interface"
 interface TradingStrategyFormProps {
   availableTokens: TokenInfo[]
   selectedTokens: string[]
-  tradingInstructions: string
+  strategy: string
   onTokenToggle: (tokenId: string) => void
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void
   onGoBack: () => void
   onCreateAgent: () => void
+  isLoading: boolean
 }
 
 export function TradingStrategyForm({
   availableTokens,
   selectedTokens,
-  tradingInstructions,
+  strategy,
   onTokenToggle,
   onInputChange,
   onGoBack,
   onCreateAgent,
+  isLoading = false,
 }: TradingStrategyFormProps) {
   return (
     <div>
@@ -34,11 +36,11 @@ export function TradingStrategyForm({
         />
 
         <div>
-          <Label htmlFor="tradingInstructions">Trading Instructions</Label>
+          <Label htmlFor="strategy">Trading Instructions</Label>
           <Textarea
-            id="tradingInstructions"
-            name="tradingInstructions"
-            value={tradingInstructions}
+            id="strategy"
+            name="strategy"
+            value={strategy}
             onChange={onInputChange}
             placeholder="How to enter positions, take profit, and cut losses?"
             className="mt-1"
@@ -53,7 +55,8 @@ export function TradingStrategyForm({
           <Button
             onClick={onCreateAgent}
             className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600"
-            disabled={selectedTokens.length === 0 || !tradingInstructions}
+            isLoading={isLoading}
+            disabled={selectedTokens.length === 0 || !strategy}
           >
             Create Agent
           </Button>

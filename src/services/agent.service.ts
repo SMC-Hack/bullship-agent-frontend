@@ -121,10 +121,15 @@ const fetchAgent = async (agentId: string): Promise<AgentResponse> => {
 };
 
 const createAgent = async (
-  createAgentDto: CreateAgentDto
+  createAgentDto: CreateAgentDto,
+  accessToken: string
 ): Promise<AgentResponse> => {
   try {
-    const { data } = await api.post<AgentResponse>("/agent", createAgentDto);
+    const { data } = await api.post<AgentResponse>("/agent", createAgentDto, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
     return data;
   } catch (error) {
     throw new Error("Failed to create agent");
@@ -133,12 +138,18 @@ const createAgent = async (
 
 const createAgentToken = async (
   agentId: string,
-  createAgentTokenDto: CreateAgentTokenDto
+  createAgentTokenDto: CreateAgentTokenDto,
+  accessToken: string
 ): Promise<AgentResponse> => {
   try {
     const { data } = await api.post<AgentResponse>(
       `/agent/${agentId}/token`,
-      createAgentTokenDto
+      createAgentTokenDto,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
     );
     return data;
   } catch (error) {

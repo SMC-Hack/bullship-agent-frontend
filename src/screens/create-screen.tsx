@@ -8,10 +8,11 @@ import { useRouter } from "next/router";
 import useAuth from "@/hooks/useAuth";
 import uploadService from "@/services/upload.service";
 import useMerchant from "@/hooks/useMerchant";
-import { ethers } from "ethers";
 import agentService from "@/services/agent.service";
 import { CreateAgentDto } from "@/interfaces/agent.interface";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 export default function CreateScreen() {
   const router = useRouter();
@@ -32,24 +33,24 @@ export default function CreateScreen() {
     setSelectedTokens,
   } = useCreateAgentFormStore();
 
-  // const { createAgent, createAgentState, getAgentInfo } = useMerchant();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { createAgent, createAgentState, getAgentInfo } = useMerchant();
 
   const accessToken = session?.accessToken || "";
   const availableTokens = useMemo(() => {
-    return Object.values(tokens ?? {}).map(
-      (chainTokens) => chainTokens[0]
-    );
-  }, [tokens])
+    return Object.values(tokens ?? {}).map((chainTokens) => chainTokens[0]);
+  }, [tokens]);
 
   const selectedTokenList = useMemo(() => {
-    return Object.values(tokens ?? {}).flatMap(item => item).filter((token) =>
-      selectedTokens.includes(token.symbol)
-    );
-  }, [tokens, selectedTokens])
-  
-  Object.values(tokens ?? {}).flatMap(item => item).filter((token) =>
-    selectedTokens.includes(token.symbol)
-  );
+    return Object.values(tokens ?? {})
+      .flatMap((item) => item)
+      .filter((token) => selectedTokens.includes(token.symbol));
+  }, [tokens, selectedTokens]);
+
+  Object.values(tokens ?? {})
+    .flatMap((item) => item)
+    .filter((token) => selectedTokens.includes(token.symbol));
 
   const handleGoBack = () => {
     if (step > 1) {
@@ -104,27 +105,64 @@ export default function CreateScreen() {
   };
 
   const handleCreateAgent = async () => {
-    const dto: CreateAgentDto = {
-      name: formData.name,
-      strategy: formData.tradingInstructions,
-      selectedTokens: JSON.stringify(selectedTokenList),
-    }
+    setIsLoading(true);
+    try {
+      const createAgentToastId = toast.loading("Creating agent...");
 
-    console.log(dto);
-    // const agent = await agentService.createAgent(dto)
-    // const agentWalletAddress = ethers.Wallet.createRandom().address;
-    // console.log("Agent wallet address: ", agentWalletAddress)
-    // // Step 2: Register agent in smart contract
-    // await createAgent(agentWalletAddress, formData.name, formData.symbol);
-    // // Step 3: Register agent token in backend
-    // const agentInfo = await getAgentInfo(agentWalletAddress);
-    // if (agentInfo) {
-    //   console.log("Agent info: ", agentInfo)
-    //   const agentTokenAddress = agentInfo.stockTokenAddress;
-    //   console.log("Agent token address: ", agentTokenAddress)
-    // }
-    // // TO DO KAE: update agent info in backend
-    // // Step 4: Navigate to agent detail page
+      // Step 1: Create agent in backend
+      const dto: CreateAgentDto = {
+        name: formData.name,
+        stockSymbol: formData.symbol,
+        description: formData.description,
+        strategy: formData.strategy,
+        selectedTokens: JSON.stringify(selectedTokenList),
+      };
+
+      const agent = await agentService.createAgent(dto, accessToken);
+      const agentWalletAddress = agent.walletAddress;
+
+      toast.dismiss(createAgentToastId);
+      const registerAgentToastId = toast.loading(
+        "Registering agent in smart contract..."
+      );
+
+      // Step 2: Register agent in smart contract
+      await createAgent(agentWalletAddress, formData.name, formData.symbol);
+
+      toast.dismiss(registerAgentToastId);
+      const registerAgentTokenToastId = toast.loading(
+        "Registering agent token in backend..."
+      );
+
+      // Step 3: Register agent token in backend
+      const agentInfo = await getAgentInfo(agentWalletAddress);
+
+      if (agentInfo) {
+        const agentTokenAddress = agentInfo.stockTokenAddress;
+        await agentService.createAgentToken(
+          agent.id.toString(),
+          {
+            stockAddress: agentTokenAddress,
+          },
+          accessToken
+        );
+
+        toast.dismiss(registerAgentTokenToastId);
+        toast.success("Agent created successfully!");
+
+        // Step 5: Navigate to agent detail page
+        router.push(`/agent/${agent.id}`);
+      }
+    } catch (e) {
+      let errMessage = "Failed to create agent!";
+      if (e instanceof AxiosError && e.response?.data?.message) {
+        errMessage = e.response.data.message;
+      }
+      console.error(e);
+      toast.dismiss();
+      toast.error(errMessage);
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -171,11 +209,12 @@ export default function CreateScreen() {
           <TradingStrategyForm
             availableTokens={availableTokens}
             selectedTokens={selectedTokens}
-            tradingInstructions={formData.tradingInstructions}
+            strategy={formData.strategy}
             onTokenToggle={handleTokenToggle}
             onInputChange={handleInputChange}
             onGoBack={handleGoBack}
             onCreateAgent={handleCreateAgent}
+            isLoading={isLoading}
           />
         )}
       </div>

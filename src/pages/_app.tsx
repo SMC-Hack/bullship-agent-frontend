@@ -8,6 +8,7 @@ import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
 import { mainnet, polygon, optimism, arbitrum, base, baseSepolia } from "wagmi/chains";
 import config from "@/config";
+import { Toaster } from "@/components/ui/sonner"
 
 // Create a query client
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ export default function App({ Component, pageProps }: AppProps) {
         >
           <RainbowKitProvider>
             <Component {...pageProps} />
+            <Toaster />
           </RainbowKitProvider>
         </ThemeProvider>
       </QueryClientProvider>

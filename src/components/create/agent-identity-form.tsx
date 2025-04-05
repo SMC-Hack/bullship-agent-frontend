@@ -92,6 +92,7 @@ export function AgentIdentityForm({
         <ProfileImageUpload profileImage={profileImage} onImageUpload={onImageUpload} />
 
         <div className="grid w-full items-center gap-1.5">
+          {/* TODO: Check duplicate agent name */}
           <Label htmlFor="name">
             Agent Name <span className="text-red-500">*</span>
           </Label>

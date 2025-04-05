@@ -6,7 +6,7 @@ interface CreateAgentFormStore {
     name: string;
     symbol: string;
     description: string;
-    tradingInstructions: string;
+    strategy: string;
   };
   profileImage: string | null;
   selectedTokens: string[];
@@ -22,7 +22,7 @@ const useCreateAgentFormStore = create<CreateAgentFormStore>()(
         name: "",
         symbol: "",
         description: "",
-        tradingInstructions: "",
+        strategy: "",
       },
       profileImage: null,
       selectedTokens: [],

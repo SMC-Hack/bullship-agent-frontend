@@ -17,12 +17,14 @@ export interface GetAgentsQuery {
 
 export interface CreateAgentDto {
   name: string;
+  stockSymbol: string;
+  description: string;
+  imageUrl?: string;
   strategy: string;
   selectedTokens: string;
 }
 
 export interface CreateAgentTokenDto {
-  stockSymbol: string;
   stockAddress: string;
 }
 
