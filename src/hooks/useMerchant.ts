@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { usePublicClient, useWalletClient } from 'wagmi';
 import { BigNumber, ethers } from 'ethers';
 import merchantContractService, { AgentInfo, SellShareRequest, GasEstimation } from '@/services/merchant-contract.service';
+import { getAgentMerchantContract } from "@/services/merchant-contract.service";
 
 // Helper adapters for compatibility between wagmi v2 and ethers v5
 function walletClientToEthersSigner(walletClient: any): ethers.Signer | null {
@@ -210,37 +211,79 @@ export default function useMerchant() {
   const purchaseStockByUsdc = useCallback(async (stockTokenAddress: string, usdcAmount: BigNumber) => {
     if (!signer) return;
     
-    setPurchaseStockByUsdcState({
-      ...purchaseStockByUsdcState,
+    setPurchaseStockByUsdcState(prevState => ({
+      ...prevState,
       isLoading: true,
       isSuccess: false,
       isError: false,
       error: null,
       txHash: null
-    });
+    }));
     
     try {
+      // Get the USDC token address from the contract
+      const merchantContract = getAgentMerchantContract(signer);
+      const usdcTokenAddress = await merchantContract.usdcToken();
+      
+      // Create USDC token contract instance
+      const usdcContract = new ethers.Contract(
+        usdcTokenAddress,
+        [
+          'function approve(address spender, uint256 amount) returns (bool)',
+          'function allowance(address owner, address spender) view returns (uint256)'
+        ],
+        signer
+      );
+      
+      // Check if user has given enough allowance
+      const userAddress = await signer.getAddress();
+      const currentAllowance = await usdcContract.allowance(
+        userAddress,
+        merchantContract.address
+      );
+      
+      // If allowance is insufficient, request approval
+      if (currentAllowance.lt(usdcAmount)) {
+        console.log("Insufficient allowance. Current:", currentAllowance.toString(), "Needed:", usdcAmount.toString());
+        console.log("Requesting USDC approval...");
+        
+        const approveTx = await usdcContract.approve(
+          merchantContract.address,
+          ethers.constants.MaxUint256 // Unlimited approval - or use usdcAmount for exact amount
+        );
+        
+        // Wait for approval transaction to be confirmed
+        const approveReceipt = await approveTx.wait();
+        console.log("USDC approved successfully:", approveReceipt.transactionHash);
+      }
+      
+      // Now proceed with the purchase transaction
       const tx = await merchantContractService.purchaseStockByUsdc(signer, stockTokenAddress, usdcAmount);
       const receipt = await tx.wait();
       
-      setPurchaseStockByUsdcState({
-        ...purchaseStockByUsdcState,
+      setPurchaseStockByUsdcState(prevState => ({
+        ...prevState,
         isLoading: false,
         isSuccess: true,
+        isError: false,
+        error: null,
         txHash: receipt.transactionHash
-      });
+      }));
       
       return receipt;
     } catch (error) {
-      setPurchaseStockByUsdcState({
-        ...purchaseStockByUsdcState,
+      console.error("Failed to purchase tokens by USDC:", error);
+      setPurchaseStockByUsdcState(prevState => ({
+        ...prevState,
         isLoading: false,
+        isSuccess: false,
         isError: true,
-        error: error as Error
-      });
+        error: error as Error,
+        txHash: null
+      }));
       throw error;
     }
-  }, [signer, purchaseStockByUsdcState]);
+  }, [signer, setPurchaseStockByUsdcState, merchantContractService]);
   
   // Commit Sell Stock
   const [commitSellStockState, setCommitSellStockState] = useState<CommitSellStockResponse>({
