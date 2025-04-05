@@ -1,8 +1,47 @@
+import { useAccount, useEnsName } from 'wagmi';
+import { sepolia } from 'viem/chains';
+import { truncateAddress } from '@/utils/truncate';
+import { useEffect, useState } from 'react';
+import { getENSLink } from '@/utils/getENSLink';
+
 export default function Heading() {
+  const { address } = useAccount();
+  const [mounted, setMounted] = useState(false);
+
+  const { data: name } = useEnsName({
+    address: address,
+    chainId: sepolia.id,
+  });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const displayName = mounted
+    ? address
+      ? name
+        ? name
+        : truncateAddress(address)
+      : 'there'
+    : 'there';
+
   return (
     <div className="flex items-center justify-between mb-6">
-      <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-        Hi, vitalik.eth!
+      <h1 className="text-xl font-bold">
+        Hi,{' '}
+        {address ? (
+          <a
+            href={getENSLink(name || address)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent hover:underline"
+          >
+            {displayName}
+          </a>
+        ) : (
+          'there'
+        )}
+        !
       </h1>
       <div className="relative">
         <input
@@ -26,5 +65,5 @@ export default function Heading() {
         </svg>
       </div>
     </div>
-  )
-} 
+  );
+}

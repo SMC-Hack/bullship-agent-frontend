@@ -1,14 +1,14 @@
-import "@/styles/globals.css";
-import "@rainbow-me/rainbowkit/styles.css";
+import '@/styles/globals.css';
+import '@rainbow-me/rainbowkit/styles.css';
 
-import { ThemeProvider } from "next-themes";
-import type { AppProps } from "next/app";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import { WagmiProvider } from "wagmi";
-import { mainnet, polygon, optimism, arbitrum, base, baseSepolia } from "wagmi/chains";
-import config from "@/config";
-import { Toaster } from "@/components/ui/sonner"
+import { ThemeProvider } from 'next-themes';
+import type { AppProps } from 'next/app';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { WagmiProvider } from 'wagmi';
+import { baseSepolia, sepolia } from 'wagmi/chains';
+import config from '@/config';
+import { Toaster } from '@/components/ui/sonner';
 
 // Create a query client
 const queryClient = new QueryClient();
@@ -17,8 +17,8 @@ const queryClient = new QueryClient();
 const wagmiConfig = getDefaultConfig({
   appName: config.APP_NAME,
   projectId: config.REOWN_PROJECT_ID,
-  chains: [mainnet, polygon, optimism, arbitrum, base, baseSepolia],
-  ssr: false, // If your dApp uses server side rendering (SSR)
+  chains: [baseSepolia, sepolia],
+  ssr: true,
 });
 
 export default function App({ Component, pageProps }: AppProps) {

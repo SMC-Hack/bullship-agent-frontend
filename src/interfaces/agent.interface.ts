@@ -11,6 +11,12 @@ export interface Agent {
   isRunning: boolean;
   nextFinalizeAt: Date | null;
   createdAt: Date;
+  walletKey: {
+    address: string;
+  };
+  user: {
+    walletAddress: string;
+  };
 }
 
 export interface GetAgentsQuery {
@@ -27,7 +33,7 @@ export interface CreateAgentDto {
   description: string;
   strategy: string;
   selectedTokens: string;
-  imageUrl?: string | undefined
+  imageUrl?: string | undefined;
 }
 
 export interface CreateAgentTokenDto {

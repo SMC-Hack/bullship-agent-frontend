@@ -1,8 +1,10 @@
-import type React from "react";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
-import AgentCardSkeleton from "@/components/agents/agent-card-skeleton";
-import { Agent } from "@/interfaces/agent.interface";
+import type React from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import AgentCardSkeleton from '@/components/agents/agent-card-skeleton';
+import { Agent } from '@/interfaces/agent.interface';
+import { useEnsName } from 'wagmi';
+import { sepolia } from 'viem/chains';
 
 interface AgentCardProps {
   agent?: Agent | undefined | null;
@@ -10,16 +12,21 @@ interface AgentCardProps {
 }
 
 const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
+  const { data: name } = useEnsName({
+    address: agent?.walletKey.address as `0x${string}`,
+    chainId: sepolia.id,
+  });
+
   const router = useRouter();
 
   // Default performance data if none provided
   const defaultData = [
-    { timestamp: "1", value: 100 },
-    { timestamp: "2", value: 120 },
-    { timestamp: "3", value: 110 },
-    { timestamp: "4", value: 140 },
-    { timestamp: "5", value: 130 },
-    { timestamp: "6", value: 160 },
+    { timestamp: '1', value: 100 },
+    { timestamp: '2', value: 120 },
+    { timestamp: '3', value: 110 },
+    { timestamp: '4', value: 140 },
+    { timestamp: '5', value: 130 },
+    { timestamp: '6', value: 160 },
   ];
 
   const handleCardClick = () => {
@@ -27,7 +34,7 @@ const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") {
+    if (e.key === 'Enter' || e.key === ' ') {
       handleCardClick();
     }
   };
@@ -48,14 +55,14 @@ const AgentCard = ({ agent, isLoading }: AgentCardProps) => {
       <div className="flex items-center">
         <div className="relative h-12 w-12">
           <Image
-            src={agent.imageUrl || "/placeholder.svg"}
+            src={agent.imageUrl || '/placeholder.svg'}
             alt={agent.name}
             fill
             className="rounded-full object-cover"
           />
         </div>
         <div>
-          <h3 className="font-semibold text-gray-900">{agent.name}</h3>
+          <h3 className="font-semibold text-gray-900">{name || agent.name}</h3>
           <p className="text-sm text-gray-500">${agent.stockSymbol}</p>
         </div>
       </div>
