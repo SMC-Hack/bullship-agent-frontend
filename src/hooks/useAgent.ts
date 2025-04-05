@@ -7,9 +7,10 @@ const useAgent = (id: string) => {
   const accessToken = session?.accessToken;
 
   const query = useQuery({
-    queryKey: ["agent", id],
+    queryKey: ["agent", id, accessToken],
     queryFn: () =>
       accessToken ? agentService.fetchAgent(id, accessToken) : null,
+    enabled: !!accessToken,
   });
 
   return query;
