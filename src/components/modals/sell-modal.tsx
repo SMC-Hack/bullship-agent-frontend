@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-
+import { ethers } from "ethers"
+import useMerchant from "@/hooks/useMerchant"
 interface SellModalProps {
   agent: {
     id: string
@@ -14,16 +15,21 @@ interface SellModalProps {
     symbol: string
     image: string
     balance?: number
+    stockTokenAddress: string
   }
+  stockTokenBalance: number
   onClose: () => void
+  onSuccess?: () => void
 }
 
-const SellModal = ({ agent, onClose }: SellModalProps) => {
+const SellModal = ({ agent, stockTokenBalance, onClose, onSuccess }: SellModalProps) => {
   const [amount, setAmount] = useState("50")
   const [isProcessing, setIsProcessing] = useState(false)
 
+  const { commitSellStock, commitSellStockState } = useMerchant()
+
   // Mock data
-  const agentBalance = agent.balance || 100
+  const agentBalance = Number.parseInt(stockTokenBalance.toString());
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9.]/g, "")
@@ -38,11 +44,20 @@ const SellModal = ({ agent, onClose }: SellModalProps) => {
     setIsProcessing(true)
 
     // Simulate transaction processing
-    setTimeout(() => {
-      setIsProcessing(false)
+
+    try {
+      await commitSellStock(agent.stockTokenAddress, Number.parseFloat(amount))
+
+      if (onSuccess) {
+        onSuccess()
+      }
+
       onClose()
-      // Show success notification here
-    }, 2000)
+    } catch (error) {
+      console.error("Sell failed:", error)
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   return (

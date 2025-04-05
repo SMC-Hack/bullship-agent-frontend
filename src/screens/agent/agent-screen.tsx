@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { ArrowLeft, Star, ArrowUpRight, ArrowDownRight, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -7,11 +7,20 @@ import PerformanceChart from "@/components/charts/performance-chart"
 import BuyModal from "@/components/modals/buy-modal"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/router"
+import useMerchant from "@/hooks/useMerchant"
+import { ethers } from "ethers"
+import { useQuery } from "@tanstack/react-query"
+import SellModal from "@/components/modals/sell-modal"
+import { config } from "@/config"
 
 export default function AgentScreen() {
   const router = useRouter()
   const [isWatchlisted, setIsWatchlisted] = useState(false)
   const [showBuyModal, setShowBuyModal] = useState(false)
+  const [showSellModal, setShowSellModal] = useState(false)
+  const { getConnectedAddress } = useMerchant()
+
+  const {BASE_SEPOLIA_USDC_ADDRESS} = config
 
   const paramsId = router.query.id as string;
 
@@ -38,6 +47,74 @@ export default function AgentScreen() {
     tradingTokens: ["BTC", "ETH", "SOL", "AVAX"],
   }
 
+  // Get user's wallet address
+  const userAddress = getConnectedAddress();
+  
+  // Check if user has any agent tokens in their wallet
+  const { 
+    data: tokenBalance, 
+    isLoading: isTokenBalanceLoading, 
+    refetch: refetchTokenBalance 
+  } = useQuery({
+    queryKey: ['agentTokenBalance', agent.stockTokenAddress, userAddress],
+    queryFn: async () => {
+      if (!userAddress || !agent.stockTokenAddress) return ethers.BigNumber.from(0);
+      
+      try {
+        // Create contract interface for ERC20 token
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const tokenContract = new ethers.Contract(
+          agent.stockTokenAddress,
+          ['function balanceOf(address) view returns (uint256)'],
+          provider
+        );
+        
+        // Get balance
+        const balance = await tokenContract.balanceOf(userAddress);
+        console.log(`User token balance: ${balance.toString()}`);
+        return balance;
+      } catch (error) {
+        console.error('Error getting token balance:', error);
+        return ethers.BigNumber.from(0);
+      }
+    },
+    enabled: !!userAddress && !!agent.stockTokenAddress,
+    refetchInterval: 30000 // Refetch every 30 seconds
+  });
+
+  const { 
+    data: usdcBalance, 
+    isLoading: isUsdcBalanceLoading, 
+    refetch: refetchUsdcBalance 
+  } = useQuery({
+    queryKey: ['userUsdcBalance', BASE_SEPOLIA_USDC_ADDRESS],
+    queryFn: async () => {
+      if (!userAddress) return ethers.BigNumber.from(0);
+      
+      try {
+        // Create contract interface for ERC20 token
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const tokenContract = new ethers.Contract(
+          BASE_SEPOLIA_USDC_ADDRESS,
+          ['function balanceOf(address) view returns (uint256)'],
+          provider
+        );
+        
+        // Get balance
+        const balance = await tokenContract.balanceOf(userAddress);
+        console.log(`User token balance: ${balance.toString()}`);
+        return balance.div(ethers.BigNumber.from(10).pow(6));
+      } catch (error) {
+        console.error('Error getting token balance:', error);
+        return ethers.BigNumber.from(0);
+      }
+    },
+    enabled: !!userAddress && !!agent.stockTokenAddress,
+    refetchInterval: 30000 // Refetch every 30 seconds
+  });
+  
+  // Determine if user has tokens
+  const hasTokens = tokenBalance && !tokenBalance.isZero();
   const handleGoBack = () => {
     router.back()
   }
@@ -48,6 +125,16 @@ export default function AgentScreen() {
 
   const handleBuy = () => {
     setShowBuyModal(true)
+  }
+  
+  const handleSell = () => {
+    setShowSellModal(true)
+    // TODO: Implement sell modal component and functionality
+  }
+  
+  // Function to be called from buy modal after successful purchase
+  const onPurchaseOrSellSuccess = () => {
+    refetchTokenBalance();
   }
 
   const formatCurrency = (value: number) => {
@@ -103,6 +190,13 @@ export default function AgentScreen() {
             {Math.abs(agent.pnl)}%
           </div>
         </div>
+        {/* Show user's balance if they have tokens */}
+        {hasTokens && (
+          <div className="flex justify-between mt-3 pt-3 border-t border-blue-100">
+            <p className="text-gray-600">Your Balance</p>
+            <p className="font-semibold text-gray-800">{tokenBalance?.toString() || '0'} ${agent.symbol}</p>
+          </div>
+        )}
       </div>
 
       <div className="mb-6">
@@ -164,14 +258,38 @@ export default function AgentScreen() {
         </div>
       </div>
 
-      <Button
-        className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white py-6"
-        onClick={handleBuy}
-      >
-        Buy ${agent.symbol}
-      </Button>
+      {/* Add Buy and Sell buttons */}
+      <div className="space-y-3">
+        <Button
+          className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white py-6"
+          onClick={handleBuy}
+        >
+          Buy ${agent.symbol}
+        </Button>
+        
+        {hasTokens && (
+          <Button
+            className="w-full bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white py-6"
+            onClick={handleSell}
+          >
+            Sell ${agent.symbol}
+          </Button>
+        )}
+      </div>
 
-      {showBuyModal && <BuyModal agent={agent} onClose={() => setShowBuyModal(false)} />}
+      {showBuyModal && <BuyModal 
+        agent={agent} 
+        usdcBalance={Number.parseInt(usdcBalance?.toString() ?? "0")} 
+        onClose={() => setShowBuyModal(false)} 
+        onSuccess={ onPurchaseOrSellSuccess } 
+      />}
+      {/* TODO: Add SellModal component when implemented */}
+      {showSellModal && <SellModal 
+        agent={agent} 
+        stockTokenBalance = {tokenBalance ?? 0}
+        onClose={() => setShowSellModal(false)} 
+        onSuccess={ onPurchaseOrSellSuccess } />
+      } 
     </div>
   )
 }
