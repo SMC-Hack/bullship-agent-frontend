@@ -32,15 +32,44 @@ export interface Agent {
     walletAddress: string;
   };
   month: {
-    results: TimeSeriesResult[]
-  },
+    results: TimeSeriesResult[];
+  };
   week: {
-    results: TimeSeriesResult[],
-    result: TimeSeriesResult[] // TODO: notify backend to change this
-  },
+    results: TimeSeriesResult[];
+    result: TimeSeriesResult[]; // TODO: notify backend to change this
+  };
   year: {
-    results: TimeSeriesResult[]
-  }
+    results: TimeSeriesResult[];
+  };
+  tokenDetailBase: TokenDetailResult;
+  tokenDetailPolygon: TokenDetailResult;
+}
+
+interface TokenDetailResult {
+  result: TokenDetailResultItem[];
+  meta: Meta;
+}
+export interface TokenDetailResultItem {
+  chain_id: number;
+  contract_address: string;
+  name: string;
+  symbol: string;
+  amount: number;
+  price_to_usd: number;
+  value_usd: number;
+  abs_profit_usd: number;
+  roi: number;
+  status: number;
+}
+interface Meta {
+  system: System;
+}
+interface System {
+  click_time: number;
+  node_time: number;
+  microservices_time: number;
+  redis_time: number;
+  total_time: number;
 }
 
 export interface GetAgentsQuery {
