@@ -17,26 +17,18 @@ export default function Heading() {
     setMounted(true);
   }, []);
 
-  const displayName = mounted
-    ? address
-      ? name
-        ? name
-        : truncateAddress(address)
-      : 'there'
-    : 'there';
-
   return (
     <div className="flex items-center justify-between mb-6">
       <h1 className="text-xl font-bold">
         Hi,{' '}
-        {address ? (
+        {mounted && address ? (
           <a
             href={getENSLink(name || address)}
             target="_blank"
             rel="noopener noreferrer"
             className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent hover:underline"
           >
-            {displayName}
+            {name || truncateAddress(address)}
           </a>
         ) : (
           'there'
